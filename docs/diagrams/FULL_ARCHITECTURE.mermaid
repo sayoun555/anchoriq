@@ -1,0 +1,129 @@
+graph TD
+    subgraph Frontend
+        REACT["React 19 Dashboard"]
+        MAP["Map - Leaflet Markers"]
+        GRAPH["Graph - Cytoscape.js"]
+        WARROOM["War Room - Risk Overview"]
+        TIMELINE["Timeline View"]
+        AI_BAR["AI Query Bar Ctrl+K"]
+    end
+
+    subgraph Backend
+        API["REST API - 174 Endpoints"]
+        SEC["Spring Security JWT"]
+        APP_SVC["Application Services"]
+        WS["WebSocket STOMP x3"]
+    end
+
+    subgraph Domain["Core Domain - Pure POJO"]
+        VESSEL["Vessel Aggregate"]
+        PORT["Port Aggregate"]
+        ROUTE["Route Aggregate"]
+        RISK_SVC["SupplyChainRisk Service"]
+        SANCTION_SVC["SanctionScreening Service"]
+        ANOMALY_SVC["AnomalyDetection Service"]
+    end
+
+    subgraph AI_Module["AI Engine"]
+        OPENCLAW["OpenClaw - Primary"]
+        SCORING["Risk Scoring 0-100"]
+        NL_QUERY["NL to Cypher"]
+        WHATIF["What-if Simulation"]
+        BRIEFING["Daily Briefing"]
+    end
+
+    subgraph Data_Collection["Data Collectors"]
+        AIS["AIS WebSocket"]
+        WEATHER["Open-Meteo"]
+        SANCTIONS["OpenSanctions"]
+        NEWS["GNews"]
+        OIL["EIA Oil Price"]
+        FX["Frankfurter FX"]
+        GDELT_C["GDELT Geopolitical"]
+        UNCTAD["UNCTAD Playwright Crawler"]
+    end
+
+    subgraph Event_Stream["Kafka KRaft"]
+        T_AIS["ais-positions P3"]
+        T_RISK["risk-alerts P2"]
+        T_OTHER["weather/sanction/news\nmarket/geo/port"]
+    end
+
+    subgraph Automation
+        N8N_CLIENT["N8n Webhook Client"]
+        DISPATCHER["Notification Dispatcher"]
+        SLACK_N["Slack Notifier"]
+        EMAIL_N["Email Notifier"]
+        DISCORD_N["Discord Notifier"]
+    end
+
+    subgraph N8N["n8n Workflow Engine"]
+        WEBHOOK["Webhook Handler"]
+        DISCORD_ACT["Discord Action"]
+        SLACK_ACT["Slack Action"]
+    end
+
+    subgraph Payment
+        PAY_ROUTER["PaymentGatewayRouter\nStrategy Pattern"]
+        STRIPE["Stripe USD/EUR"]
+        TOSS["Toss Payments KRW"]
+    end
+
+    subgraph Databases
+        NEO4J[("Neo4j 5\nOntology Graph\n4-Hop Cypher")]
+        PG[("PostgreSQL 16\nUsers/Payments\nWorkflows")]
+        REDIS[("Redis 7\nGEO Positions\nCache TTL")]
+        ES[("Elasticsearch 8\nNews Full-text\nTimeline")]
+    end
+
+    subgraph Monitoring
+        PROM["Prometheus"]
+        GRAFANA["Grafana Dashboards"]
+    end
+
+    REACT --> API
+    MAP --> API
+    GRAPH --> API
+    WARROOM --> API
+    AI_BAR --> API
+
+    API --> SEC
+    API --> APP_SVC
+    API --> WS
+
+    APP_SVC --> Domain
+    APP_SVC --> AI_Module
+
+    AI_Module --> OPENCLAW
+    SCORING --> Domain
+
+    SEC --> PG
+    PAY_ROUTER --> STRIPE
+    PAY_ROUTER --> TOSS
+
+    Data_Collection --> Event_Stream
+
+    T_AIS --> Domain
+    T_AIS --> REDIS
+    T_OTHER --> Domain
+    T_OTHER --> ES
+    T_RISK --> N8N_CLIENT
+    T_RISK --> DISPATCHER
+    T_RISK --> WS
+
+    N8N_CLIENT --> WEBHOOK
+    WEBHOOK --> DISCORD_ACT
+    WEBHOOK --> SLACK_ACT
+
+    DISPATCHER --> SLACK_N
+    DISPATCHER --> EMAIL_N
+    DISPATCHER --> DISCORD_N
+
+    Domain --> NEO4J
+    APP_SVC --> PG
+    Domain --> REDIS
+
+    Backend --> PROM
+    PROM --> GRAFANA
+
+    WS -.->|Real-time| REACT

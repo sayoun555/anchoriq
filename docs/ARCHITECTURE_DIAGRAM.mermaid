@@ -1,0 +1,122 @@
+graph LR
+    subgraph EXT["External Data Sources"]
+        AIS["AIS WebSocket\nReal-time Positions"]
+        REST_API["10 REST APIs\nWeather/News/Sanctions\nOil/FX/GDELT/Ports"]
+        CRAWLER["UNCTAD Crawler\nPlaywright"]
+    end
+
+    subgraph KAFKA["Kafka Event Stream"]
+        ais_t["ais-positions\nPartition:3"]
+        weather_t["weather-events"]
+        sanction_t["sanction-updates"]
+        news_t["news-events"]
+        market_t["market-data"]
+        geo_t["geopolitical-events"]
+        port_t["port-congestion"]
+        risk_t["risk-alerts\nPartition:2"]
+    end
+
+    subgraph SPRING["Spring Boot Modular Monolith - Java 21 Virtual Threads"]
+        subgraph COLLECTOR["anchoriq-collector"]
+            producers["Kafka Producers x7"]
+            consumers_c["Kafka Consumers x7\nAIS/Weather/Sanction\nNews/Market/Port/Geo"]
+            geo_init["Geography Initializer\nChokepoints/Ports/EEZ"]
+        end
+
+        subgraph CORE["anchoriq-core - Pure Domain"]
+            entities["Aggregate Roots\nVessel/Port/Route\nCompany/Country"]
+            domain_svc["Domain Services\nSupplyChainRisk\nSanctionScreening\nRouteOptimization\nAnomalyDetection"]
+            repo_if["Repository Interfaces\nDIP - No Infra Dependency"]
+            vo["Value Objects\nImo/Mmsi/Flag/Locode\nRiskLevel/CongestionLevel"]
+        end
+
+        subgraph API["anchoriq-api - REST + Security"]
+            controllers["174 REST Controllers\nDashboard/Vessel/Port\nRisk/Ontology/Search"]
+            app_svc["Application Services\nOrchestration Only"]
+            security["Spring Security\nJWT Auth + Plan Check"]
+            infra["Infrastructure Adapters\nNeo4j/JPA/Redis Impls"]
+            ws["WebSocket STOMP\n3 Channels\nvessels/alerts/dashboard"]
+        end
+
+        subgraph AI_MOD["anchoriq-ai - Intelligence"]
+            openclaw["OpenClaw Client\nChat/Responses/Tools"]
+            scoring["Risk Scoring Engine\n0-100 Score"]
+            nl_query["NL Query to Cypher\nNatural Language"]
+            whatif["What-if Simulation\nRoute Disruption"]
+            briefing["Daily Briefing\nAuto Summary"]
+        end
+
+        subgraph AUTO["anchoriq-automation - Actions"]
+            kafka_cons["Kafka Consumers x3\nalert-n8n-trigger\nalert-ws-pusher\nalert-es-logger"]
+            n8n_client["N8n Webhook Client"]
+            dispatcher["Notification Dispatcher\nRule Matching"]
+            notifiers["Notifiers\nSlack/Email/Discord"]
+        end
+    end
+
+    subgraph DB["4 Databases - Multi-Model"]
+        NEO4J["Neo4j 5\nOntology Graph\nVessel-Company-Country\nRoute-Chokepoint\n4-Hop Cypher"]
+        PG["PostgreSQL 16\nUsers/Subscriptions\nPayments/Workflows\nAudit Logs\nMonthly Partitioning"]
+        REDIS["Redis 7\nGEO Positions\nAPI Cache + TTL\nSession + Rate Limit"]
+        ES["Elasticsearch 8\nNews Full-text\nAI Decision Logs\nTimeline Events\nILM Auto-delete"]
+    end
+
+    subgraph PAYMENT["Payment Gateway"]
+        stripe["Stripe\nUSD/EUR"]
+        toss["Toss Payments\nKRW"]
+        router["PaymentGatewayRouter\nStrategy Pattern"]
+    end
+
+    subgraph N8N_SVC["n8n Workflow Engine"]
+        webhook_wf["Webhook Workflows\nRisk Alert Handler"]
+        actions["Action Nodes\nDiscord/Slack/Email\nCustom HTTP"]
+    end
+
+    subgraph FRONTEND["React 19 Dashboard"]
+        map_view["Map View\nLeaflet + Markers\nVessel/Chokepoint"]
+        graph_view["Graph View\nCytoscape.js\nOntology Explorer"]
+        warroom["War Room\nRisk Overview\nTrend Charts\nCongestion Ranking"]
+        timeline["Timeline View\nEvent-Decision-Action"]
+        ai_bar["AI Query Bar\nCtrl+K Natural Language"]
+        pages["CRUD Pages\nVessels/Ports/Risk\nWorkflows/Alerts\nPricing/Settings"]
+    end
+
+    subgraph MONITOR["Monitoring"]
+        prom["Prometheus\nMetrics Scraping"]
+        grafana["Grafana\nDashboards\nJVM/DB/Kafka/API"]
+    end
+
+    EXT --> producers
+    producers --> KAFKA
+    KAFKA --> consumers_c
+    KAFKA --> kafka_cons
+    consumers_c --> CORE
+    consumers_c --> REDIS
+    consumers_c --> ES
+
+    CORE --> NEO4J
+    API --> PG
+    API --> CORE
+    API --> AI_MOD
+    AI_MOD --> CORE
+    AI_MOD --> openclaw
+
+    security --> PG
+    router --> stripe
+    router --> toss
+
+    kafka_cons --> n8n_client
+    kafka_cons --> dispatcher
+    dispatcher --> notifiers
+    n8n_client --> webhook_wf
+    webhook_wf --> actions
+    kafka_cons --> ws
+
+    infra --> NEO4J
+    infra --> REDIS
+
+    API -->|REST API| FRONTEND
+    ws -->|WebSocket| FRONTEND
+
+    SPRING --> prom
+    prom --> grafana

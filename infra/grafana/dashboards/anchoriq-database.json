@@ -1,0 +1,149 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "HikariCP Connection Pool",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "hikaricp_connections_active{application=\"anchoriq\"}",
+          "legendFormat": "Active ({{pool}})",
+          "refId": "A"
+        },
+        {
+          "expr": "hikaricp_connections_idle{application=\"anchoriq\"}",
+          "legendFormat": "Idle ({{pool}})",
+          "refId": "B"
+        },
+        {
+          "expr": "hikaricp_connections_pending{application=\"anchoriq\"}",
+          "legendFormat": "Pending ({{pool}})",
+          "refId": "C"
+        },
+        {
+          "expr": "hikaricp_connections_max{application=\"anchoriq\"}",
+          "legendFormat": "Max ({{pool}})",
+          "refId": "D"
+        }
+      ]
+    },
+    {
+      "title": "HikariCP Connection Acquisition Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(hikaricp_connections_acquire_seconds_sum{application=\"anchoriq\"}[5m]) / rate(hikaricp_connections_acquire_seconds_count{application=\"anchoriq\"}[5m])",
+          "legendFormat": "Avg Acquisition Time ({{pool}})",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Neo4j Connection Pool",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "neo4j_driver_connections_pool_status_in_use{application=\"anchoriq\"}",
+          "legendFormat": "In Use",
+          "refId": "A"
+        },
+        {
+          "expr": "neo4j_driver_connections_pool_status_idle{application=\"anchoriq\"}",
+          "legendFormat": "Idle",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "title": "Neo4j Query Duration",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(spring_data_repository_invocations_seconds_bucket{application=\"anchoriq\", repository=~\".*Neo4j.*\"}[5m]))",
+          "legendFormat": "p95 ({{method}})",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Redis Memory Usage",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        }
+      },
+      "targets": [
+        {
+          "expr": "redis_memory_used_bytes",
+          "legendFormat": "Used Memory",
+          "refId": "A"
+        },
+        {
+          "expr": "redis_memory_max_bytes",
+          "legendFormat": "Max Memory",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "title": "Redis Command Throughput",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "rate(redis_commands_processed_total[5m])",
+          "legendFormat": "Commands/s",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(redis_keyspace_hits_total[5m])",
+          "legendFormat": "Cache Hits/s",
+          "refId": "B"
+        },
+        {
+          "expr": "rate(redis_keyspace_misses_total[5m])",
+          "legendFormat": "Cache Misses/s",
+          "refId": "C"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["anchoriq", "database"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "AnchorIQ - Database Monitoring",
+  "uid": "anchoriq-database",
+  "version": 1
+}

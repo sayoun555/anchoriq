@@ -1,0 +1,42 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:16:///anchoriq_test
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+  # Disable Neo4j auto-configuration for JPA-only tests
+  data:
+    neo4j:
+      database: neo4j
+  neo4j:
+    uri: bolt://localhost:7687
+    authentication:
+      username: neo4j
+      password: test
+
+  # Disable Redis auto-configuration
+  data.redis:
+    host: localhost
+    port: 6379
+
+  # Disable Elasticsearch auto-configuration
+  elasticsearch:
+    uris: http://localhost:9200
+
+jwt:
+  secret: test-jwt-secret-key-for-unit-tests-only-do-not-use-in-production-this-must-be-long-enough
+  access-expiration: 900000
+  refresh-expiration: 604800000
+
+openclaw:
+  api-key: test-key
+  base-url: http://localhost:8089/mock
+
+logging:
+  level:
+    com.anchoriq: DEBUG
+    org.testcontainers: INFO

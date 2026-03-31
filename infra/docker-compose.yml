@@ -1,0 +1,288 @@
+services:
+  # ===========================================
+  # Database Layer
+  # ===========================================
+
+  postgresql:
+    image: postgres:16
+    profiles: ["core", "full"]
+    environment:
+      POSTGRES_DB: anchoriq
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - anchoriq-net
+
+  redis:
+    image: redis:7-alpine
+    profiles: ["core", "full"]
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - anchoriq-net
+
+  neo4j:
+    image: neo4j:5-community
+    profiles: ["ontology", "full"]
+    environment:
+      NEO4J_AUTH: ${NEO4J_USERNAME}/${NEO4J_PASSWORD}
+      NEO4J_dbms_memory_heap_max__size: 512m
+      NEO4J_dbms_memory_pagecache_size: 256m
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j-data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+    healthcheck:
+      test: ["CMD", "neo4j", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - anchoriq-net
+
+  # ===========================================
+  # Messaging + Search Layer
+  # ===========================================
+
+  elasticsearch:
+    image: elasticsearch:8.13.0
+    profiles: ["data", "full"]
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks:
+      - anchoriq-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    profiles: ["core", "data", "full"]
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,EXTERNAL://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG_RETENTION_HOURS: 1
+      KAFKA_HEAP_OPTS: "-Xmx512m -Xms512m"
+      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
+    ports:
+      - "29092:29092"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks:
+      - anchoriq-net
+
+  # ===========================================
+  # Automation Layer
+  # ===========================================
+
+  n8n:
+    image: n8nio/n8n:latest
+    profiles: ["automation", "full"]
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD}
+      - WEBHOOK_URL=http://localhost:5678/
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n-data:/home/node/.n8n
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - anchoriq-net
+
+  # ===========================================
+  # Monitoring Layer
+  # ===========================================
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    profiles: ["monitoring", "full"]
+    command:
+      - --kafka.server=kafka:9092
+    ports:
+      - "9308:9308"
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - anchoriq-net
+
+  prometheus:
+    image: prom/prometheus:latest
+    profiles: ["monitoring", "full"]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alert-rules.yml:/etc/prometheus/alert-rules.yml
+      - prometheus-data:/prometheus
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - anchoriq-net
+
+  grafana:
+    image: grafana/grafana:latest
+    profiles: ["monitoring", "full"]
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    depends_on:
+      - prometheus
+    networks:
+      - anchoriq-net
+
+  # ===========================================
+  # Application Layer
+  # ===========================================
+
+  anchoriq-app:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    profiles: ["full"]
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - anchoriq-net
+
+  anchoriq-frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.dev
+    profiles: ["frontend", "full"]
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    depends_on:
+      - anchoriq-app
+    networks:
+      - anchoriq-net
+
+# ===========================================
+# Volumes
+# ===========================================
+volumes:
+  pg-data:
+  neo4j-data:
+  redis-data:
+  es-data:
+  kafka-data:
+  n8n-data:
+  prometheus-data:
+  grafana-data:
+
+# ===========================================
+# Networks
+# ===========================================
+networks:
+  anchoriq-net:
+    driver: bridge

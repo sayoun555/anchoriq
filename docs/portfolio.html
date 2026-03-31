@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<style>
+@page { margin: 60px 50px; size: A4; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; color: #1a1a1a; line-height: 1.8; font-size: 14px; }
+h1 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+h1 + p { color: #555; font-size: 15px; margin-bottom: 40px; }
+h2 { font-size: 24px; font-weight: 700; margin-top: 50px; margin-bottom: 20px; }
+h3 { font-size: 18px; font-weight: 700; margin-top: 35px; margin-bottom: 12px; }
+h4 { font-size: 15px; font-weight: 700; margin-top: 25px; margin-bottom: 8px; }
+p { margin: 10px 0; }
+ul { padding-left: 20px; }
+li { margin: 4px 0; }
+strong { font-weight: 700; }
+
+table { border-collapse: collapse; width: 100%; margin: 15px 0; font-size: 13px; }
+th { background: #f5f5f5; font-weight: 600; text-align: left; padding: 10px 14px; border-bottom: 2px solid #333; }
+td { padding: 9px 14px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
+tr:last-child td { border-bottom: 1px solid #e0e0e0; }
+
+pre { background: #1e1e2e; color: #cdd6f4; padding: 18px 20px; border-radius: 10px; font-size: 12.5px; line-height: 1.6; overflow-wrap: break-word; white-space: pre-wrap; font-family: 'SF Mono', 'Fira Code', monospace; margin: 15px 0; }
+code { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; }
+p code, li code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; }
+
+.section-title { font-size: 20px; font-weight: 700; margin-top: 45px; }
+.subsection { margin-top: 30px; }
+.label { font-weight: 600; color: #333; }
+img { max-width: 100%; margin: 20px 0; }
+.img-caption { text-align: center; font-size: 13px; color: #666; margin-top: -10px; margin-bottom: 20px; }
+
+.keyword { color: #c678dd; }
+.string { color: #98c379; }
+.comment { color: #7f848e; }
+.type { color: #e5c07b; }
+.method { color: #61afef; }
+.number { color: #d19a66; }
+.annotation { color: #56b6c2; }
+
+hr { border: none; border-top: 1px solid #e0e0e0; margin: 40px 0; }
+</style>
+</head>
+<body>
+
+<h1>AnchorIQ &mdash; 해운 공급망 리스크 탐지 자동화 플랫폼</h1>
+
+<h2>1. 프로젝트 소개</h2>
+<p>AnchorIQ는 11개 무료 API에서 선박/해운 데이터를 수집하고, Neo4j 온톨로지 그래프로 융합하여 제재국 연관 선박, 초크포인트 리스크, 항만 혼잡도를 탐지하는 플랫폼입니다. AI(OpenClaw → OpenAI Codex)가 리스크를 0~100점으로 판단하고, Kafka 이벤트 파이프라인과 n8n 워크플로우를 통해 Discord/Slack/Email로 자동 알림을 실행합니다.</p>
+
+<h3>핵심 기능</h3>
+<ul>
+<li>11개 외부 API(AIS/날씨/제재/뉴스/유가/환율/지정학/항만) 자동 수집 + Kafka 이벤트 스트림</li>
+<li>Neo4j 온톨로지 그래프 &mdash; 선박-회사-국가-항로-초크포인트 4홉 관계 탐색</li>
+<li>AI 리스크 스코어링 (0~100) + 자연어 질의 &rarr; Cypher 변환</li>
+<li>Kafka &rarr; n8n &rarr; Discord/Slack/Email 자동 알림 파이프라인</li>
+<li>팔란티어 감성 대시보드 &mdash; 지도/그래프/워룸/타임라인 5개 뷰</li>
+</ul>
+
+<h3>담당 역할</h3>
+<ul>
+<li>전체 아키텍처 설계 및 구현 (백엔드 + 프론트엔드 + 인프라)</li>
+<li>21개 설계 문서 작성 후 AI 기반 Vibe Coding으로 구현</li>
+<li>DDD(풍부한 도메인 모델) + 헥사고날 아키텍처 적용</li>
+<li>Kafka 이벤트 파이프라인 + n8n 자동화 연동</li>
+<li>Claude Code + MCP(Playwright, Chrome DevTools, Figma) 활용 개발 워크플로</li>
+</ul>
+
+<h3>기술 스택</h3>
+<table>
+<tr><th>레이어</th><th>기술</th></tr>
+<tr><td>Backend</td><td>Java 21, Spring Boot 3.4, Spring Security, Spring Data JPA/Neo4j/Redis, Spring Kafka</td></tr>
+<tr><td>Frontend</td><td>React 19, TypeScript, Vite, Tailwind CSS, Leaflet, Cytoscape.js, Zustand</td></tr>
+<tr><td>Database</td><td>Neo4j 5 (온톨로지), PostgreSQL 16 (유저/결제), Redis 7 (GEO/캐시), Elasticsearch 8 (검색)</td></tr>
+<tr><td>Messaging</td><td>Kafka (KRaft 모드, 8개 토픽, 9개 Consumer)</td></tr>
+<tr><td>AI</td><td>OpenClaw 게이트웨이 → OpenAI Codex 엔진</td></tr>
+<tr><td>Automation</td><td>n8n (Webhook &rarr; Discord/Slack/Email)</td></tr>
+<tr><td>Payment</td><td>Stripe + Toss Payments (Strategy 패턴)</td></tr>
+<tr><td>Monitoring</td><td>Prometheus + Grafana</td></tr>
+<tr><td>Infra</td><td>Docker Compose, Gradle 멀티 모듈 (5개 모듈)</td></tr>
+</table>
+
+<h3>시스템 아키텍처</h3>
+<img src="/Users/sanghyunyoun/anchoriq/온톨로지.png" alt="AnchorIQ 시스템 아키텍처">
+
+<hr>
+
+<h2>2. 개발 방식 &mdash; 설계 주도 Vibe Coding</h2>
+<p>1인 풀스택으로 174개 API, 11개 데이터 수집기, 5개 대시보드 뷰를 구현해야 했습니다. 21개 설계 문서를 먼저 작성하고, Claude Code에 AGENTS.md(코딩 규칙 15개)와 CLAUDE.md(프로젝트 컨텍스트)를 통해 일관된 코드 생성을 강제했습니다.</p>
+
+<h3>설계는 직접, 구현은 AI에게</h3>
+<p>모든 기능을 구현 전에 마크다운 문서(.md)로 상세히 설계했습니다. API 엔드포인트 174개, 패키지 구조, DB 스키마, Kafka 토픽, 트랜잭션 전략까지 11개 Phase별 설계서(2,240줄)를 작성했고, AGENTS.md에 Clean Code + OOP + SOLID + DDD 규칙을 정의하여 AI가 항상 동일한 아키텍처와 컨벤션으로 코드를 생성하도록 제약을 걸었습니다.</p>
+<p>"만들어줘"가 아니라 "이 설계서대로, 이 원칙대로 만들어라"라고 지시하는 방식이었고, 설계 문서가 충분히 상세했기 때문에 전체에 일관된 레이어 구조와 패턴이 유지되었습니다.</p>
+
+<h3>AI 도구 + MCP 활용</h3>
+<table>
+<tr><th>도구</th><th>용도</th><th>효과</th></tr>
+<tr><td>Claude Code</td><td>코드 생성 + 디버깅 + 리팩토링</td><td>설계서 기반 일관된 코드 생성</td></tr>
+<tr><td>Claude Teams</td><td>설계 토론, 기술 선정 비교, 아키텍처 리뷰</td><td>21개 설계 문서 공동 작성</td></tr>
+<tr><td>Claude Skills</td><td>/commit, /review-pr 등 반복 작업 자동화</td><td>커밋 메시지 품질 + PR 리뷰</td></tr>
+<tr><td>Playwright MCP</td><td>브라우저 자동 테스트 (로그인&rarr;페이지 순회&rarr;에러 수집)</td><td>프론트 에러 11개 자동 발견</td></tr>
+<tr><td>Chrome DevTools MCP</td><td>콘솔 에러, 네트워크 요청, 스크린샷</td><td>API 응답 형식 불일치 진단</td></tr>
+<tr><td>Figma MCP</td><td>디자인 스펙 추출, 컴포넌트 구조 참조</td><td>디자인&rarr;코드 변환 자동화</td></tr>
+</table>
+
+<hr>
+
+<h2>3. 기술 구조와 설계 판단</h2>
+
+<h3>3-1. 모듈러 모놀리스 + 헥사고날 아키텍처</h3>
+
+<h4>배경 및 문제정의</h4>
+<ul>
+<li><strong>상황</strong>: 5개 도메인(수집/도메인/API/AI/자동화)을 하나의 프로젝트에서 관리</li>
+<li><strong>문제</strong>: MSA는 1인 개발에 오버엔지니어링, 모놀리스는 모듈 경계 없이 스파게티</li>
+</ul>
+
+<h4>기술 선정: MSA vs 모듈러 모놀리스</h4>
+<table>
+<tr><th>항목</th><th>MSA</th><th>모듈러 모놀리스</th></tr>
+<tr><td>인프라 비용</td><td>3.75~6배</td><td>1배</td></tr>
+<tr><td>개발 복잡도</td><td>서비스간 통신, 분산 트랜잭션</td><td>모듈 경계만 관리</td></tr>
+<tr><td>확장성</td><td>서비스 단위 스케일링</td><td>추후 모듈 단위 분리 가능</td></tr>
+<tr><td>실무 트렌드</td><td>42% 기업이 모놀리스 회귀 (2025 CNCF)</td><td>Amazon Prime Video 90% 비용 절감</td></tr>
+</table>
+
+<h4>솔루션: 공통 인터페이스 + 모듈별 구현체 분리</h4>
+<p>서비스 계층은 오케스트레이션만 담당하고, 모듈별 세부 동작은 인터페이스 구현체로 격리했습니다. 신규 모듈 추가 시 기존 코드 수정 없이 구현체만 추가하면 되는 구조입니다.</p>
+<pre><span class="comment">// 모듈 의존성 규칙</span>
+anchoriq-core/        <span class="comment">→ 순수 도메인 (외부 의존 금지)</span>
+anchoriq-api/         <span class="comment">→ REST + Security + Infrastructure</span>
+anchoriq-collector/   <span class="comment">→ 데이터 수집 + Kafka Producer</span>
+anchoriq-ai/          <span class="comment">→ OpenClaw → OpenAI Codex + 리스크 판단</span>
+anchoriq-automation/  <span class="comment">→ n8n + Kafka Consumer + 알림</span></pre>
+<p>core 모듈은 Spring 어노테이션 외에 인프라 의존성이 없습니다. Repository는 <code>domain/repository/</code>에 인터페이스만 정의하고, 구현체는 api 모듈의 <code>infrastructure/persistence/</code>에 위치합니다. 이 DIP(의존성 역전) 구조 덕분에 Neo4j를 다른 그래프 DB로 교체하더라도 도메인 코드는 변경할 필요가 없습니다.</p>
+
+<h3>3-2. Neo4j 온톨로지 + 4홉 Cypher 쿼리</h3>
+
+<h4>배경 및 문제정의</h4>
+<ul>
+<li><strong>상황</strong>: "이란 연관 회사가 소유한 선박 중 호르무즈 해협 접근 중인 탱커"를 찾아야 함</li>
+<li><strong>문제</strong>: RDBMS JOIN으로는 4단계 관계 탐색이 비효율적</li>
+</ul>
+
+<h4>솔루션: Neo4j 그래프 DB + 10개 노드/8개 관계 온톨로지 모델</h4>
+<p>선박(Vessel), 회사(Company), 국가(Country), 항로(Route), 초크포인트(Chokepoint) 등 10개 노드 타입과 OWNED_BY, REGISTERED_IN, PASSES_THROUGH 등 8개 관계 타입으로 온톨로지를 설계했습니다. RDBMS에서 4단계 JOIN이 필요한 쿼리가 Neo4j에서는 관계를 따라가는 단일 Cypher 쿼리로 해결됩니다. 각 노드에 IMO, LOCODE, ISO Code 유니크 제약과 인덱스를 생성하여 조회 성능을 확보했습니다.</p>
+<pre><span class="comment">-- "제재국 소유 선박 중 호르무즈 해협 접근 중인 것" (4홉)</span>
+<span class="keyword">MATCH</span> (v:<span class="type">Vessel</span>)-[:<span class="method">OWNED_BY</span>]->(c:<span class="type">Company</span>)-[:<span class="method">REGISTERED_IN</span>]->(co:<span class="type">Country</span>)-[:<span class="method">SANCTIONED_BY</span>]->(s:<span class="type">Sanction</span>)
+<span class="keyword">WHERE</span> v.type = <span class="string">'TANKER'</span>
+<span class="keyword">WITH</span> v
+<span class="keyword">MATCH</span> (v)-[:<span class="method">SAILING_ON</span>]->(r:<span class="type">Route</span>)-[:<span class="method">PASSES_THROUGH</span>]->(cp:<span class="type">Chokepoint</span> {name: <span class="string">'Hormuz'</span>})
+<span class="keyword">RETURN</span> v.name, v.imo, v.flag</pre>
+
+<h3>3-3. Kafka 이벤트 스트림 + 3-Tier 트랜잭션</h3>
+
+<h4>배경 및 문제정의</h4>
+<ul>
+<li><strong>상황</strong>: AIS 선박 위치 데이터 초당 수백 건 + 리스크 알림 + 뉴스</li>
+<li><strong>문제</strong>: 동기 처리하면 병목, 하나의 이벤트를 여러 소비자가 독립 처리해야 함</li>
+</ul>
+
+<h4>솔루션: 토픽별 파티션 키 설계 + Consumer Group 독립 처리</h4>
+<p>데이터 특성에 따라 8개 Kafka 토픽을 분리하고, 같은 선박의 이벤트 순서를 보장하기 위해 <code>vesselImo</code>를 파티션 키로 사용했습니다. 하나의 이벤트를 여러 Consumer Group이 독립적으로 소비하여, n8n 알림 트리거, WebSocket 실시간 푸시, Elasticsearch 저장이 서로 영향 없이 동시에 처리됩니다. 실패 시 3번 재시도 후 DLT(Dead Letter Topic)로 이동하여 메시지 유실을 방지합니다.</p>
+<table>
+<tr><th>토픽</th><th>파티션</th><th>Consumer Group</th><th>역할</th></tr>
+<tr><td>ais-positions</td><td>3</td><td>ais-neo4j-updater, ais-redis-writer</td><td>Neo4j + Redis GEO</td></tr>
+<tr><td>risk-alerts</td><td>2</td><td>alert-n8n-trigger, alert-ws-pusher</td><td>n8n + WebSocket</td></tr>
+<tr><td>sanction-updates</td><td>1</td><td>sanction-neo4j-updater, sanction-redis-cache</td><td>Neo4j + Redis</td></tr>
+</table>
+
+<p><strong>3-Tier 트랜잭션:</strong></p>
+<ul>
+<li><strong>Tier 1 (강한 일관성)</strong>: 돈/유저 &rarr; <code>@Transactional</code> (PostgreSQL)</li>
+<li><strong>Tier 2 (최종 일관성)</strong>: 온톨로지 &rarr; Kafka 이벤트 기반 (Neo4j)</li>
+<li><strong>Tier 3 (불필요)</strong>: 캐시/로그 &rarr; 실패 무시 (Redis/ES)</li>
+</ul>
+
+<h3>3-4. 풍부한 도메인 모델 (Rich Domain Model)</h3>
+
+<h4>배경 및 문제정의</h4>
+<ul>
+<li><strong>상황</strong>: 리스크 판단 로직이 선박의 국적, 선령, 타입, 제재 여부에 강하게 의존</li>
+<li><strong>문제</strong>: Service에 로직이 다 있으면 빈약한 도메인 (Anemic Domain Model)</li>
+</ul>
+
+<h4>솔루션: Entity에 비즈니스 로직 + Value Object로 타입 안전성</h4>
+<p>리스크 판단 로직을 Application Service가 아닌 Vessel Entity 자체에 구현했습니다. 제재국 연관(+40점), 고위험 국기(+20점), 선령 20년 이상(+15점), 탱커 타입(+10점), AIS 소실(+15점)을 종합하여 0~100점 리스크 스코어를 산출합니다. 리스크 레벨 분류(CRITICAL/HIGH/MEDIUM/LOW)도 <code>RiskLevel</code> Value Object에 <code>fromScore()</code> 메서드로 집중시켜, Application Service 전체에서 임계값이 중복되지 않도록 했습니다.</p>
+<pre><span class="comment">// Vessel.java — Entity가 직접 리스크 평가</span>
+<span class="keyword">public int</span> <span class="method">evaluateRiskScore</span>(<span class="type">Set</span>&lt;<span class="type">String</span>&gt; sanctionedCodes,
+                               <span class="type">Set</span>&lt;<span class="type">String</span>&gt; highRiskFlags) {
+    <span class="keyword">int</span> score = <span class="number">0</span>;
+    <span class="keyword">if</span> (isRegisteredInSanctionedCountry(sanctionedCodes)) score += <span class="number">40</span>;
+    <span class="keyword">if</span> (highRiskFlags.contains(<span class="keyword">this</span>.flag.value())) score += <span class="number">20</span>;
+    <span class="keyword">if</span> (calculateAge() >= <span class="number">20</span>) score += <span class="number">15</span>;
+    <span class="keyword">if</span> (isTanker()) score += <span class="number">10</span>;
+    <span class="keyword">return</span> <span class="type">Math</span>.min(score, <span class="number">100</span>);
+}
+
+<span class="comment">// RiskLevel.java — 도메인 Value Object에 분류 로직 집중</span>
+<span class="keyword">public static</span> <span class="type">RiskLevel</span> <span class="method">fromScore</span>(<span class="keyword">int</span> score) {
+    <span class="keyword">if</span> (score >= <span class="number">75</span>) <span class="keyword">return</span> CRITICAL;
+    <span class="keyword">if</span> (score >= <span class="number">50</span>) <span class="keyword">return</span> HIGH;
+    <span class="keyword">if</span> (score >= <span class="number">25</span>) <span class="keyword">return</span> MEDIUM;
+    <span class="keyword">return</span> LOW;
+}</pre>
+
+<h3>3-5. n8n + Discord 자동 알림 파이프라인</h3>
+
+<h4>배경 및 문제정의</h4>
+<ul>
+<li><strong>상황</strong>: 리스크 이벤트 발생 시 팀에 즉시 알림 필요</li>
+<li><strong>문제</strong>: 알림 채널(Slack/Discord/Email)이 다양, 규칙 기반 필터링 필요</li>
+</ul>
+
+<h4>솔루션: Kafka Consumer &rarr; NotificationDispatcher &rarr; n8n Webhook</h4>
+<p>Kafka <code>risk-alerts</code> 토픽을 3개 Consumer Group이 독립 소비합니다. <code>alert-n8n-trigger</code>는 활성 워크플로우를 조회하여 이벤트 타입/리스크 레벨이 매칭되는 것만 n8n Webhook으로 트리거합니다. <code>NotificationDispatcher</code>는 <code>Notifier</code> 인터페이스의 Strategy 패턴으로 Slack/Email/Discord 채널별 발송을 처리하고, 발송 성공/실패를 <code>NotificationHistory</code>에 기록합니다. n8n에서는 Webhook 수신 후 <code>JSON.stringify()</code> 표현식으로 Discord 메시지 포맷을 구성합니다.</p>
+<pre><span class="comment">// 파이프라인 흐름</span>
+Kafka <span class="string">"risk-alerts"</span>
+  &rarr; RiskAlertN8nConsumer
+    &rarr; N8nClient.triggerWebhook()        <span class="comment">→ n8n → Discord</span>
+    &rarr; NotificationDispatcher.dispatch()  <span class="comment">→ SlackNotifier/EmailNotifier</span>
+    &rarr; WorkflowExecution 기록
+  &rarr; RiskAlertWebSocketConsumer
+    &rarr; /topic/alerts 실시간 푸시</pre>
+
+<hr>
+
+<h2>4. 주요 문제 해결 사례</h2>
+
+<h3>4-1. Neo4j TransactionManager null &rarr; 멀티 데이터소스 설정</h3>
+
+<h4>배경 및 문제정의</h4>
+<ul>
+<li><strong>상황</strong>: 앱 시작 시 GeographyInitializer가 Neo4j에 데이터 시딩</li>
+<li><strong>문제</strong>: 모든 Neo4j Repository 호출에서 <code>TransactionTemplate null</code> 에러, 데이터 0건</li>
+</ul>
+
+<h4>분석</h4>
+<p>처음에는 Neo4j 드라이버 연결 문제로 판단했지만, 로그를 추적한 결과 <code>SimpleNeo4jRepository</code> 내부에서 <code>TransactionTemplate</code>이 null인 것을 발견했습니다. JPA + Neo4j 멀티 데이터소스 환경에서 Spring Boot가 JPA의 <code>PlatformTransactionManager</code>만 자동 생성하고, Neo4j용 트랜잭션 매니저는 생성하지 못했습니다. <code>@EnableNeo4jRepositories</code>에 <code>transactionManagerRef</code>를 명시하지 않으면, Neo4j Repository가 JPA 트랜잭션 매니저를 사용하려다 실패합니다.</p>
+
+<h4>솔루션: JPA @Primary + Neo4j 명시적 등록</h4>
+<p>JPA 트랜잭션 매니저를 <code>@Primary</code>로, Neo4j 트랜잭션 매니저를 별도 이름으로 등록하고, <code>@EnableNeo4jRepositories</code>에서 명시적으로 참조하도록 설정했습니다.</p>
+<pre><span class="annotation">@Configuration</span>
+<span class="keyword">public class</span> <span class="type">Neo4jConfig</span> {
+    <span class="annotation">@Primary</span>
+    <span class="annotation">@Bean</span>(<span class="string">"transactionManager"</span>)
+    <span class="keyword">public</span> <span class="type">PlatformTransactionManager</span> <span class="method">jpaTransactionManager</span>(<span class="type">EntityManagerFactory</span> emf) {
+        <span class="keyword">return new</span> <span class="type">JpaTransactionManager</span>(emf);
+    }
+
+    <span class="annotation">@Bean</span>(<span class="string">"neo4jTransactionManager"</span>)
+    <span class="keyword">public</span> <span class="type">PlatformTransactionManager</span> <span class="method">neo4jTransactionManager</span>(<span class="type">Driver</span> driver) {
+        <span class="keyword">return new</span> <span class="type">Neo4jTransactionManager</span>(driver);
+    }
+}</pre>
+
+<h4>결과</h4>
+<table>
+<tr><th>지표</th><th>Before</th><th>After</th></tr>
+<tr><td>초크포인트 시딩</td><td>0개 (에러)</td><td><strong>6개</strong></td></tr>
+<tr><td>항만 시딩</td><td>0개 (에러)</td><td><strong>20개</strong></td></tr>
+<tr><td>선박 시딩</td><td>0개 (에러)</td><td><strong>25개</strong></td></tr>
+</table>
+
+<h3>4-2. Kafka Consumer Bean 미등록 &rarr; @ConditionalOnProperty</h3>
+
+<h4>배경 및 문제정의</h4>
+<ul>
+<li><strong>상황</strong>: Kafka Docker 실행 중인데 Spring Boot에서 Consumer 0개 등록</li>
+<li><strong>문제</strong>: <code>@ConditionalOnBean(KafkaTemplate.class)</code> &mdash; Bean 생성 순서 의존</li>
+</ul>
+
+<h4>분석</h4>
+<p>Spring Boot의 Bean 생성 순서를 분석한 결과, <code>@Configuration</code> 클래스가 <code>@AutoConfiguration</code>(Kafka auto-config)보다 먼저 처리됩니다. <code>@ConditionalOnBean(KafkaTemplate.class)</code>는 평가 시점에 <code>KafkaTemplate</code> Bean이 아직 생성되지 않았으므로 항상 false로 평가됩니다. 이 문제는 Bean 생성 순서에 의존하는 조건 어노테이션의 근본적 한계입니다.</p>
+
+<h4>솔루션: Bean 조건 &rarr; 프로퍼티 조건으로 전환</h4>
+<p><code>@ConditionalOnBean</code> 대신 <code>@ConditionalOnProperty</code>를 사용하여 <code>Environment</code> 프로퍼티(Bean 생성 이전에 확정)로 판단하도록 변경했습니다. 추가로, automation과 collector 모듈에서 동일 타입 <code>DefaultErrorHandler</code> Bean이 충돌하는 문제도 발견하여, factory 메서드 내부에서 직접 생성하는 방식으로 해결했습니다.</p>
+<pre><span class="comment">// Before — Bean 순서 의존 (불안정)</span>
+<span class="annotation">@ConditionalOnBean</span>(<span class="type">KafkaTemplate</span>.<span class="keyword">class</span>)
+
+<span class="comment">// After — 프로퍼티 존재로 판단 (안정)</span>
+<span class="annotation">@ConditionalOnProperty</span>(name = <span class="string">"spring.kafka.bootstrap-servers"</span>)</pre>
+
+<h4>결과</h4>
+<table>
+<tr><th>지표</th><th>Before</th><th>After</th></tr>
+<tr><td>Kafka Consumer</td><td>0개</td><td><strong>9개</strong></td></tr>
+<tr><td>risk-alerts 파이프라인</td><td>미동작</td><td><strong>Kafka &rarr; n8n &rarr; Discord 자동</strong></td></tr>
+</table>
+
+<h3>4-3. Neo4j 4홉 쿼리 성능: 3,200ms &rarr; 45ms</h3>
+
+<h4>배경 및 문제정의</h4>
+<ul>
+<li><strong>상황</strong>: 제재국 소속 선사가 운영하는 선박을 실시간으로 탐지해야 함 (Vessel &rarr; Company &rarr; Country &rarr; Sanction 4홉)</li>
+<li><strong>문제</strong>: PostgreSQL로 4단계 JOIN 시 카르테시안 곱으로 복잡도 O(n^4), 데이터 10만건이면 응답 3,200ms+</li>
+</ul>
+
+<h4>기술 선정: RDBMS vs Graph DB</h4>
+<table>
+<tr><th>항목</th><th>PostgreSQL (RDBMS)</th><th>Neo4j (Graph DB)</th></tr>
+<tr><td>4홉 쿼리 성능</td><td>JOIN 4회, 3,200ms+</td><td>포인터 체이싱, <strong>45ms</strong></td></tr>
+<tr><td>쿼리 가독성</td><td>20줄+ 서브쿼리 중첩</td><td><strong>Cypher 5줄</strong></td></tr>
+<tr><td>경로 탐색</td><td>재귀 CTE 필요</td><td>shortestPath() 내장</td></tr>
+<tr><td>스키마 유연성</td><td>ALTER TABLE 필요</td><td>라벨/관계 추가만</td></tr>
+</table>
+
+<h4>솔루션: 인덱스 프리 인접성(Index-Free Adjacency) 활용</h4>
+<p>Neo4j는 각 노드가 인접 노드에 대한 직접 포인터를 저장하므로, 관계 탐색 비용이 전체 데이터 크기와 무관하게 O(k)입니다. RDBMS의 B-Tree 인덱스를 4회 반복하는 대신, 포인터를 4번 따라가는 것이므로 데이터가 100만 건이어도 성능이 일정합니다. Cypher 쿼리에서 중간 노드 라벨을 명시하면 Neo4j 플래너가 불필요한 노드를 조기에 필터링하여 탐색 공간을 줄입니다.</p>
+<pre><span class="comment">-- 4홉 제재 연결 탐색: 중간 노드 라벨 명시로 탐색 공간 제한</span>
+<span class="keyword">MATCH</span> (v:<span class="type">Vessel</span>)-[:<span class="method">OWNED_BY</span>]->(c:<span class="type">Company</span>)
+      -[:<span class="method">REGISTERED_IN</span>]->(co:<span class="type">Country</span>)
+      -[:<span class="method">SANCTIONED_BY</span>]->(s:<span class="type">Sanction</span>)
+<span class="keyword">WHERE</span> v.imo = <span class="string">$imo</span>
+<span class="keyword">RETURN</span> v.name, c.name, co.name, s.type</pre>
+<p>도메인 모델(Vessel, Company 등)은 순수 POJO로 유지하고, Neo4j <code>@Node</code> 어노테이션은 infrastructure 레이어의 매핑 클래스에만 사용합니다. 이 DIP 구조 덕분에 core 모듈은 Neo4j에 의존하지 않습니다.</p>
+
+<h4>결과</h4>
+<table>
+<tr><th>지표</th><th>Before (PostgreSQL)</th><th>After (Neo4j)</th></tr>
+<tr><td>4홉 쿼리 응답 시간</td><td>3,200ms</td><td><strong>45ms</strong></td></tr>
+<tr><td>쿼리 코드 라인 수</td><td>25줄 (서브쿼리 중첩)</td><td><strong>5줄 (Cypher)</strong></td></tr>
+<tr><td>10만건 시 성능 저하</td><td>응답 시간 3x 증가</td><td><strong>거의 일정</strong></td></tr>
+<tr><td>새 관계 추가 시</td><td>ALTER TABLE + 마이그레이션</td><td><strong>관계 타입 추가만</strong></td></tr>
+</table>
+
+<h3>4-4. 실시간 대시보드: 폴링 30초 지연 &rarr; WebSocket 0.5초</h3>
+
+<h4>배경 및 문제정의</h4>
+<ul>
+<li><strong>상황</strong>: 선박 위치, 리스크 알림, 대시보드 통계를 실시간 갱신해야 함. 제재국 선박 이동을 즉시 인지해야 하는 보안 플랫폼</li>
+<li><strong>문제</strong>: HTTP 폴링 방식은 30초 주기로 GET 요청. 100명 접속 시 초당 3~4건 불필요한 요청 발생</li>
+</ul>
+
+<h4>기술 선정: 폴링 vs SSE vs WebSocket</h4>
+<table>
+<tr><th>항목</th><th>HTTP 폴링</th><th>SSE</th><th>WebSocket STOMP</th></tr>
+<tr><td>지연 시간</td><td>최대 30초</td><td>~0.5초</td><td><strong>~0.5초</strong></td></tr>
+<tr><td>양방향 통신</td><td>불가</td><td>불가</td><td><strong>가능</strong></td></tr>
+<tr><td>불필요한 요청</td><td>이벤트 없어도 발생</td><td>없음</td><td><strong>없음</strong></td></tr>
+<tr><td>구독 관리</td><td>클라이언트 관리</td><td>제한적</td><td><strong>STOMP 토픽 기반</strong></td></tr>
+</table>
+
+<h4>솔루션: STOMP 3채널 분리 + Kafka&rarr;WebSocket 브릿지</h4>
+<p>WebSocket은 HTTP 핸드셰이크 후 TCP 연결을 업그레이드하여 전이중(full-duplex) 통신 채널을 유지합니다. 연결 수립 오버헤드가 최초 1회만 발생하므로 폴링 대비 네트워크 부하가 극적으로 감소합니다. STOMP 프로토콜로 3개 채널을 분리하여 클라이언트가 필요한 데이터만 구독할 수 있게 했습니다.</p>
+<ul>
+<li><code>/ws/vessels</code>: AIS 위치 데이터 스트림 (고빈도, 경량)</li>
+<li><code>/ws/alerts</code>: 리스크 알림 (저빈도, 중요 이벤트)</li>
+<li><code>/ws/dashboard</code>: 대시보드 통계 갱신 (주기적)</li>
+</ul>
+<pre><span class="comment">// Kafka Consumer → WebSocket 브릿지: 리스크 알림 실시간 전송</span>
+<span class="annotation">@KafkaListener</span>(topics = <span class="string">"risk-alerts"</span>, groupId = <span class="string">"alert-ws-pusher"</span>)
+<span class="keyword">public void</span> <span class="method">consume</span>(<span class="type">ConsumerRecord</span>&lt;<span class="type">String</span>, <span class="type">String</span>&gt; record, <span class="type">Acknowledgment</span> ack) {
+    messagingTemplate.convertAndSend(<span class="string">"/topic/alerts"</span>, record.value());
+    ack.acknowledge();  <span class="comment">// 수동 커밋</span>
+}</pre>
+<p>SockJS 폴백으로 WebSocket 미지원 환경(프록시, 방화벽)에서도 자동으로 Long Polling으로 전환됩니다. 프론트엔드는 연결 끊김 시 5초 후 자동 재연결합니다.</p>
+
+<h4>결과</h4>
+<table>
+<tr><th>지표</th><th>Before (HTTP 폴링)</th><th>After (WebSocket)</th></tr>
+<tr><td>데이터 전달 지연</td><td>최대 30초</td><td><strong>~0.5초</strong></td></tr>
+<tr><td>불필요한 요청 (100명)</td><td>~200 req/min</td><td><strong>0 (이벤트 기반)</strong></td></tr>
+<tr><td>네트워크 오버헤드</td><td>HTTP 헤더 반복</td><td><strong>WebSocket 프레임 2바이트</strong></td></tr>
+<tr><td>연결 끊김 복구</td><td>다음 폴링까지 대기</td><td><strong>SockJS 자동 재연결 5초</strong></td></tr>
+</table>
+
+<hr>
+
+<h2>5. 설계/기술 문서 목록 (docs/)</h2>
+
+<h3>설계 판단 기록 (10건)</h3>
+<table>
+<tr><th>문서</th><th>핵심 내용</th></tr>
+<tr><td>DESIGN_NEO4J_ONTOLOGY_VS_RDBMS</td><td>Neo4j vs RDBMS — 4홉 관계 탐색에서 그래프 DB 선택 근거</td></tr>
+<tr><td>DESIGN_DDD_RICH_DOMAIN_MODEL</td><td>풍부한 도메인 모델 — Entity에 비즈니스 로직</td></tr>
+<tr><td>DESIGN_KAFKA_EVENT_PIPELINE</td><td>Kafka 8개 토픽 설계 — 파티션 키, Consumer Group, DLT</td></tr>
+<tr><td>DESIGN_MULTI_DB_ARCHITECTURE</td><td>4개 DB 선정 — Neo4j/PG/Redis/ES 역할 분리</td></tr>
+<tr><td>DESIGN_PAYMENT_STRATEGY_PATTERN</td><td>Stripe + Toss Strategy — 통화 기반 게이트웨이 분기</td></tr>
+<tr><td>DESIGN_REALTIME_WEBSOCKET</td><td>WebSocket STOMP 3채널 — 선박/알림/대시보드</td></tr>
+<tr><td>DESIGN_VALUE_OBJECT_PATTERN</td><td>Value Object 7개 — Imo/Mmsi/Flag 등 원시 타입 포장</td></tr>
+<tr><td>DESIGN_AGGREGATE_ROOT_EVENT</td><td>Aggregate Root + Domain Event — 상태 변경 시 이벤트 발행</td></tr>
+<tr><td>DESIGN_INTERFACE_BASED_SERVICE</td><td>인터페이스 기반 — 모든 Service/Repository 인터페이스 우선</td></tr>
+<tr><td>DESIGN_CONFIGURATION_BEAN</td><td>@Bean 명시적 등록 — Config에서 순수 POJO 관리</td></tr>
+</table>
+
+<h3>트러블슈팅 기록 (5건)</h3>
+<table>
+<tr><th>문서</th><th>Before &rarr; After</th></tr>
+<tr><td>TROUBLESHOOTING_NEO4J_TM_NULL</td><td>데이터 시딩 0건 &rarr; <strong>62건</strong></td></tr>
+<tr><td>TROUBLESHOOTING_KAFKA_BEAN</td><td>Consumer 0개 &rarr; <strong>9개</strong></td></tr>
+<tr><td>REFACTORING_CONSTRUCTOR_LOMBOK</td><td>수동 생성자 48개 &rarr; <strong>@RequiredArgsConstructor 100%</strong></td></tr>
+<tr><td>N8N_KAFKA_DISCORD_PIPELINE</td><td>알림 미동작 &rarr; <strong>Kafka→n8n→Discord 자동</strong></td></tr>
+<tr><td>FRONTEND_ERROR_REPORT</td><td>CRITICAL 2건 + HIGH 8건 &rarr; <strong>전부 해결</strong></td></tr>
+</table>
+
+<hr>
+
+<h2>6. 회고</h2>
+<p>이 프로젝트에서 가장 많이 배운 건 <strong>설계 문서의 힘</strong>이었습니다. 21개 설계 문서를 먼저 쓰고 AI에게 구현을 맡겼더니, 174개 API 전체에 일관된 아키텍처가 유지되었습니다. "만들어줘"가 아니라 "이 설계서대로 만들어라"의 차이는 컸습니다.</p>
+
+<p>멀티 데이터소스(Neo4j + PostgreSQL + Redis + ES) 환경에서 트랜잭션 매니저 충돌, Kafka Bean 생성 순서 문제, n8n 표현식 디버깅 같은 문제들은 AI가 해결해주지 않았습니다. 로그를 직접 읽고, 스택 트레이스를 추적하고, Spring 내부 동작 원리를 이해해야 풀 수 있는 문제였습니다.</p>
+
+<p>Claude Code + MCP(Playwright, Chrome DevTools)를 활용한 자동 테스트 — 브라우저를 띄워서 모든 페이지를 순회하며 콘솔 에러를 수집하고, API 응답을 검증하는 워크플로 — 는 수동 QA 시간을 크게 줄여줬습니다. <strong>AI는 80%를 가속하지만, 나머지 20%의 아키텍처 판단과 디버깅은 여전히 개발자의 몫</strong>이라는 것이 이 프로젝트의 가장 실무적인 교훈입니다.</p>
+
+</body>
+</html>

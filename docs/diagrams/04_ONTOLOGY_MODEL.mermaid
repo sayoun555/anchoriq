@@ -1,0 +1,9 @@
+graph LR
+    V["Vessel\nIMO/MMSI/Flag\nRisk 0-100"] -->|OWNED_BY| C["Company\nName/RegNo"]
+    C -->|REGISTERED_IN| CO["Country\nISO Code\nSanctioned?"]
+    V -->|DOCKED_AT| P["Port\nLocode\nCongestion"]
+    V -->|SAILING_ON| R["Route\nDistance NM"]
+    R -->|PASSES_THROUGH| CP["Chokepoint\n6 Straits\nRisk Level"]
+    CO -->|SANCTIONED_BY| S["Sanction\nUN List"]
+    R --> SZ["SeaZone\nEEZ"]
+    SZ -->|HAS_WEATHER| W["Weather\nCondition"]

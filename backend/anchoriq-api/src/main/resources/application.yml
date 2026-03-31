@@ -1,0 +1,138 @@
+spring:
+  application:
+    name: anchoriq
+
+  # Java 21 Virtual Threads
+  threads:
+    virtual:
+      enabled: true
+
+  # Environment variables (.env)
+  config:
+    import: optional:file:.env[.properties]
+
+  # JPA common
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+        format_sql: true
+
+  # Jackson
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+    time-zone: UTC
+
+  # Kafka common
+  kafka:
+    consumer:
+      auto-offset-reset: latest
+      enable-auto-commit: false
+      max-poll-records: 500
+      properties:
+        spring.json.trusted.packages: com.anchoriq.*
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: "1"
+    listener:
+      ack-mode: manual
+
+# JWT
+jwt:
+  secret: ${JWT_SECRET}
+  access-expiration: ${JWT_ACCESS_EXPIRATION:900000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+# OpenClaw (local gateway)
+openclaw:
+  base-url: ${OPENCLAW_BASE_URL:http://127.0.0.1:18789}
+  gateway-token: ${OPENCLAW_GATEWAY_TOKEN:}
+  model: ${OPENCLAW_MODEL:openclaw:main}
+  timeout-seconds: ${OPENCLAW_TIMEOUT:60}
+
+# AISstream
+aisstream:
+  api-key: ${AISSTREAM_API_KEY}
+  websocket-url: wss://stream.aisstream.io/v0/stream
+
+# External API keys
+external-api:
+  eia-key: ${EIA_API_KEY}
+  gnews-key: ${GNEWS_API_KEY}
+
+# Payment
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+
+toss:
+  secret-key: ${TOSS_SECRET_KEY}
+  webhook-secret: ${TOSS_WEBHOOK_SECRET}
+
+# n8n
+n8n:
+  base-url: ${N8N_BASE_URL:http://localhost:5678}
+  user: ${N8N_USER}
+  password: ${N8N_PASSWORD}
+  webhook-path: ${N8N_WEBHOOK_PATH:/webhook/risk-alert}
+  email-webhook-path: ${N8N_EMAIL_WEBHOOK_PATH:/webhook/send-email}
+
+# API Key
+api-key:
+  secret: ${API_KEY_SECRET}
+
+# Collector schedule
+collector:
+  schedule:
+    weather: "0 */10 * * * *"
+    sanction: "0 0 2 * * *"
+    news: "0 */15 * * * *"
+    oil-price: "0 0 */6 * * *"
+    exchange-rate: "0 0 */6 * * *"
+    geopolitical: "0 */15 * * * *"
+    port-congestion: "0 */30 * * * *"
+  auto-start:
+    ais: false
+    weather: false
+    news: false
+    oil-price: false
+    exchange-rate: false
+    sanction: false
+    geopolitical: false
+    port-congestion: false
+    unctad-baseline: false
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info,beans,conditions
+  endpoint:
+    health:
+      show-details: when_authorized
+  metrics:
+    tags:
+      application: anchoriq
+
+# Swagger
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+# Logging
+logging:
+  level:
+    com.anchoriq: INFO
+    org.springframework.data.neo4j: WARN
+    org.hibernate.SQL: WARN

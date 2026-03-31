@@ -1,0 +1,28 @@
+sequenceDiagram
+    participant U as User
+    participant FE as React
+    participant API as Spring API
+    participant JWT as JwtTokenProvider
+    participant PG as PostgreSQL
+    participant R as PaymentRouter
+    participant S as Stripe
+    participant T as Toss
+
+    U->>FE: Login
+    FE->>API: POST /auth/login
+    API->>PG: Find User
+    API->>JWT: Generate Tokens
+    JWT-->>FE: AccessToken + RefreshToken
+
+    U->>FE: Subscribe Pro Plan
+    FE->>API: POST /payments/subscribe
+    API->>R: route(currency)
+    alt USD/EUR
+        R->>S: Stripe Checkout
+        S-->>API: Payment Success
+    else KRW
+        R->>T: Toss Payment
+        T-->>API: Payment Success
+    end
+    API->>PG: Save Payment + Update Plan
+    API-->>FE: Subscription Active

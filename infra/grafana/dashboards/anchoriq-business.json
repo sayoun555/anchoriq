@@ -1,0 +1,139 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "AIS Events Processed",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "rate(ais_events_processed_total{application=\"anchoriq\"}[5m])",
+          "legendFormat": "AIS Events/s",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "AIS Events Total (Counter)",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 10000 },
+              { "color": "red", "value": 100000 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "ais_events_processed_total{application=\"anchoriq\"}",
+          "legendFormat": "Total AIS Events",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Risk Alerts Generated",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "rate(risk_alerts_generated_total{application=\"anchoriq\"}[5m])",
+          "legendFormat": "Risk Alerts/s ({{severity}})",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Risk Alerts Total by Severity",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "risk_alerts_generated_total{application=\"anchoriq\"}",
+          "legendFormat": "{{severity}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "AI Queries",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "rate(ai_queries_total{application=\"anchoriq\"}[5m])",
+          "legendFormat": "AI Queries/s ({{type}})",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Ontology Graph Expansion Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(ontology_graph_expansion_seconds_bucket{application=\"anchoriq\"}[5m]))",
+          "legendFormat": "p95 Expansion Time",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.50, rate(ontology_graph_expansion_seconds_bucket{application=\"anchoriq\"}[5m]))",
+          "legendFormat": "p50 Expansion Time",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "title": "Active Users (HTTP Sessions)",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "count(rate(http_server_requests_seconds_count{application=\"anchoriq\"}[5m]) > 0)",
+          "legendFormat": "Active Endpoints",
+          "refId": "A"
+        },
+        {
+          "expr": "tomcat_sessions_active_current_sessions{application=\"anchoriq\"}",
+          "legendFormat": "Active Sessions",
+          "refId": "B"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["anchoriq", "business"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "AnchorIQ - Business Metrics",
+  "uid": "anchoriq-business",
+  "version": 1
+}

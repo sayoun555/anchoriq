@@ -1,0 +1,9 @@
+graph TB
+    API["anchoriq-api\nREST + Security + Infra"] --> CORE["anchoriq-core\nPure Domain\nNo External Deps"]
+    API --> AI["anchoriq-ai\nOpenClaw + Scoring"]
+    AI --> CORE
+    COLLECTOR["anchoriq-collector\nData Pipeline + Kafka"] --> CORE
+    AUTO["anchoriq-automation\nn8n + Notification"] --> CORE
+    AUTO --> AI
+    API --> AUTO
+    API --> COLLECTOR

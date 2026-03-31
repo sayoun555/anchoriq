@@ -1,0 +1,6 @@
+graph LR
+    A["Raw Layer\nAIS/News/Weather\nSanctions/Oil/FX"] -->|Kafka Producer| B["Kafka\n8 Topics"]
+    B -->|Consumer| C["Clean Layer\nNormalize\nDedup\nValidate"]
+    C --> D["Ontology Layer\nNeo4j Graph\nRelationship Auto-Link"]
+    D --> E["Logic Layer\nRisk Scoring\nAnomaly Detection\nAI Reasoning"]
+    E --> F["Action Layer\nn8n Workflow\nSlack/Discord/Email"]

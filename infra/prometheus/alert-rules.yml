@@ -1,0 +1,156 @@
+groups:
+  - name: anchoriq-alerts
+    rules:
+      # =============================================
+      # HTTP / Application Alerts
+      # =============================================
+
+      - alert: HighErrorRate
+        expr: rate(http_server_requests_seconds_count{status=~"5.."}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High HTTP 5xx error rate"
+          description: "HTTP 5xx error rate is above 5% for more than 2 minutes. Current value: {{ $value | humanize }}/s"
+
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API response time (p95 > 2s)"
+          description: "95th percentile response time exceeds 2 seconds for 5 minutes. Current p95: {{ $value | humanize }}s"
+
+      - alert: HighRequestRate
+        expr: rate(http_server_requests_seconds_count[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Unusually high request rate"
+          description: "Request rate exceeds 1000/s for 5 minutes. Current rate: {{ $value | humanize }}/s"
+
+      # =============================================
+      # Database Alerts
+      # =============================================
+
+      - alert: HikariPoolExhausted
+        expr: hikaricp_connections_active / hikaricp_connections_max > 0.8
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "HikariCP connection pool nearly exhausted"
+          description: "Active connections are over 80% of max pool size. Active: {{ $value | humanizePercentage }}"
+
+      - alert: HikariPendingConnections
+        expr: hikaricp_connections_pending > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HikariCP has pending connection requests"
+          description: "{{ $value }} threads are waiting for a database connection."
+
+      # =============================================
+      # Kafka Alerts
+      # =============================================
+
+      - alert: KafkaConsumerLag
+        expr: kafka_consumer_lag > 10000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Kafka consumer lag is high"
+          description: "Consumer lag exceeds 10,000 messages for 5 minutes. Current lag: {{ $value }}"
+
+      - alert: KafkaConsumerLagCritical
+        expr: kafka_consumer_lag > 100000
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kafka consumer lag is critically high"
+          description: "Consumer lag exceeds 100,000 messages. Current lag: {{ $value }}"
+
+      # =============================================
+      # Redis Alerts
+      # =============================================
+
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis is using over 80% of configured max memory. Usage: {{ $value | humanizePercentage }}"
+
+      - alert: RedisMemoryCritical
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis memory critically high"
+          description: "Redis is using over 95% of max memory. Evictions may be aggressive."
+
+      # =============================================
+      # JVM Alerts
+      # =============================================
+
+      - alert: JvmHeapMemoryHigh
+        expr: jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "JVM heap memory usage is high"
+          description: "Heap usage exceeds 85% for 5 minutes. Current: {{ $value | humanizePercentage }}"
+
+      - alert: JvmGcPauseTooLong
+        expr: rate(jvm_gc_pause_seconds_sum[5m]) / rate(jvm_gc_pause_seconds_count[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "JVM GC pauses are too long"
+          description: "Average GC pause time exceeds 500ms."
+
+      # =============================================
+      # Business Metric Alerts
+      # =============================================
+
+      - alert: AisEventProcessingStalled
+        expr: rate(ais_events_processed_total[10m]) == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AIS event processing has stalled"
+          description: "No AIS events have been processed in the last 10 minutes."
+
+      - alert: HighRiskAlertRate
+        expr: rate(risk_alerts_generated_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Unusually high risk alert generation rate"
+          description: "Risk alerts being generated at {{ $value | humanize }}/s for 5 minutes."
+
+      # =============================================
+      # Instance Health Alerts
+      # =============================================
+
+      - alert: InstanceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance {{ $labels.instance }} is down"
+          description: "{{ $labels.job }} instance {{ $labels.instance }} has been down for more than 1 minute."

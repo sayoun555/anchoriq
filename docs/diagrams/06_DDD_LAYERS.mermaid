@@ -1,0 +1,7 @@
+graph TB
+    A["Controller\nInput Validation\nResponse Mapping"] -->|calls| B["Application Service\nOrchestration Only\nNo Business Logic"]
+    B -->|delegates| C["Domain Model\nEntity + Value Object\nBusiness Logic Here"]
+    B -->|delegates| D["Domain Service\nCross-Aggregate Logic"]
+    C --> E["Repository Interface\nPort - DIP"]
+    E -.->|implements| F["Infrastructure\nNeo4j/JPA/Redis\nAdapter"]
+    D --> E

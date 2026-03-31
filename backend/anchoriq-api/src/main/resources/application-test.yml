@@ -1,0 +1,32 @@
+spring:
+  # PostgreSQL (Testcontainers)
+  datasource:
+    url: jdbc:tc:postgresql:16:///anchoriq_test
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+
+  # JPA
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+  # Kafka (embedded for testing)
+  kafka:
+    bootstrap-servers: ${spring.embedded.kafka.brokers:localhost:9092}
+
+# JWT (test-only fixed key)
+jwt:
+  secret: test-jwt-secret-key-for-unit-tests-only-do-not-use-in-production
+  access-expiration: 900000
+  refresh-expiration: 604800000
+
+# OpenClaw (test mock)
+openclaw:
+  api-key: test-key
+  base-url: http://localhost:8089/mock
+
+# Logging
+logging:
+  level:
+    com.anchoriq: DEBUG
+    org.testcontainers: INFO

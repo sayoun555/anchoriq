@@ -1,0 +1,104 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "Consumer Lag by Topic",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "kafka_consumergroup_lag{group=~\"anchoriq.*\"}",
+          "legendFormat": "{{topic}} / {{partition}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Consumer Lag Total by Group",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum by (group) (kafka_consumergroup_lag{group=~\"anchoriq.*\"})",
+          "legendFormat": "{{group}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Message Throughput (Messages/sec)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "sum by (topic) (rate(kafka_topic_partition_current_offset{topic=~\"anchoriq.*\"}[5m]))",
+          "legendFormat": "{{topic}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Spring Kafka Listener Throughput",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "rate(spring_kafka_listener_seconds_count{application=\"anchoriq\"}[5m])",
+          "legendFormat": "{{name}} processed/s",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Error Rate / DLT Messages",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "rate(spring_kafka_listener_seconds_count{application=\"anchoriq\", result=\"failure\"}[5m])",
+          "legendFormat": "Listener Errors/s ({{name}})",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (topic) (rate(kafka_topic_partition_current_offset{topic=~\".*\\.dlt\"}[5m]))",
+          "legendFormat": "DLT: {{topic}}",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "title": "Kafka Broker Partitions",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "expr": "count by (topic) (kafka_topic_partition_current_offset{topic=~\"anchoriq.*\"})",
+          "legendFormat": "{{topic}} partitions",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["anchoriq", "kafka"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "AnchorIQ - Kafka Monitoring",
+  "uid": "anchoriq-kafka",
+  "version": 1
+}

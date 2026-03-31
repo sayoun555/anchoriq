@@ -1,0 +1,47 @@
+spring:
+  # PostgreSQL
+  datasource:
+    url: jdbc:postgresql://postgresql:5432/anchoriq
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 30
+      minimum-idle: 10
+      connection-timeout: 3000
+      idle-timeout: 600000
+
+  # Neo4j
+  neo4j:
+    uri: bolt://neo4j:7687
+    authentication:
+      username: ${NEO4J_USERNAME}
+      password: ${NEO4J_PASSWORD}
+    pool:
+      max-connection-pool-size: 30
+
+  # Redis
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: ${REDIS_PASSWORD}
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+
+  # Elasticsearch
+  elasticsearch:
+    uris: http://elasticsearch:9200
+
+  # Kafka
+  kafka:
+    bootstrap-servers: kafka:9092
+    listener:
+      concurrency: 3
+
+  # JPA
+  jpa:
+    hibernate:
+      ddl-auto: validate

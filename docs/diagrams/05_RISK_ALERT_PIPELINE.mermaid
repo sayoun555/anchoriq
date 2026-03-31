@@ -1,0 +1,13 @@
+graph LR
+    A["AI Engine\nRisk Detected"] -->|Publish| B["Kafka\nrisk-alerts"]
+    B --> C1["Consumer 1\nalert-n8n-trigger"]
+    B --> C2["Consumer 2\nalert-ws-pusher"]
+    B --> C3["Consumer 3\nalert-es-logger"]
+    C1 --> D["N8n Client\nWebhook POST"]
+    C1 --> E["Notification\nDispatcher"]
+    E -->|Rule Match| F["Slack/Discord\nEmail"]
+    D --> G["n8n\nWorkflow"]
+    G --> H["Discord\nChannel"]
+    C2 --> I["WebSocket\n/topic/alerts"]
+    I --> J["React\nReal-time"]
+    C3 --> K["Elasticsearch\nTimeline"]

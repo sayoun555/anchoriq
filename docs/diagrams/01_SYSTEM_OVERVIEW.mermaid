@@ -1,0 +1,13 @@
+graph LR
+    A["11 External APIs"] -->|Raw Data| B["Kafka\n8 Topics"]
+    B -->|Consume| C["Spring Boot\n5 Modules"]
+    C --> D["Neo4j\nGraph"]
+    C --> E["PostgreSQL\nUsers"]
+    C --> F["Redis\nCache"]
+    C --> G["Elasticsearch\nSearch"]
+    C -->|Webhook| H["n8n"]
+    H --> I["Discord"]
+    H --> J["Slack"]
+    C -->|REST + WS| K["React\nDashboard"]
+    C --> L["Prometheus"]
+    L --> M["Grafana"]
