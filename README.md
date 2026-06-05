@@ -83,6 +83,14 @@ anchoriq-automation/  -- n8n Integration, Alert Automation
 - n8n workflow: Kafka -> risk alert -> Discord notification
 - Configurable collector scheduling (cron-based)
 
+## Development Harness (Agent Harness Engineering)
+
+이 리포는 앱만 담은 게 아니라, **그 앱을 설계와 어긋나지 않게 뽑아낸 에이전트 하네스**도 산출물로 포함한다. "설계 문서 먼저 읽기 / DDD 레이어 / 임시방편 금지" 같은 규칙을 산문이 아니라 **결정론적 훅**으로 강제한다.
+
+- **4개 생명주기 훅** (`.claude/settings.json` → `scripts/harness/`): SessionStart 컨텍스트 주입 · PreToolUse 지배문서 라우팅 · PostToolUse 의미 적대자 리뷰 · Stop anti-stub 게이트
+- **전파 3채널**: (A) 훅 reason 재주입 · (B) 다수결 검증단 Workflow(멀티에이전트) · (C) findings DLT 원장(세션 간 재노출)
+- 단일에이전트 가드(하네스) + 멀티에이전트 검증(Workflow)을 결합한 구조 → [HARNESS.md](HARNESS.md), [docs/harness-engineering/](docs/harness-engineering/)(트러블슈팅 포함)
+
 ## Tech Stack
 
 | Category | Technology |
@@ -101,7 +109,7 @@ anchoriq-automation/  -- n8n Integration, Alert Automation
 
 ```bash
 # 1. Infrastructure
-cd infra && docker-compose --profile core --profile data up -d
+cd infra && docker compose --profile core --profile data up -d
 
 # 2. Backend
 cd backend && ./gradlew :anchoriq-api:bootRun --args='--spring.profiles.active=local'

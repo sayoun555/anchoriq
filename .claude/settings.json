@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew *)",
+      "Bash(java -version)",
+      "Bash(docker *)",
+      "Bash(docker compose *)",
+      "Bash(docker-compose *)",
+      "Bash(pnpm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(bash scripts/harness/*)",
+      "Bash(./scripts/harness/*)",
+      "Bash(redis-cli *)",
+      "Bash(cypher-shell *)",
+      "Bash(psql *)",
+      "Bash(git status)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git branch *)",
+      "Bash(grep *)",
+      "Bash(find *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(jq *)",
+      "Bash(echo *)",
+      "Bash(curl -s *)",
+      "WebSearch"
+    ],
+    "deny": [
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~/*)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Read(./backend/.env)",
+      "Read(./infra/.env)",
+      "Read(./**/.env)"
+    ]
+  },
+  "enabledMcpjsonServers": ["playwright", "chrome-devtools"],
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/harness/session-context.sh\"",
+            "timeout": 10,
+            "statusMessage": "하네스: 설계 프로토콜 주입"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/harness/governing-doc.sh\"",
+            "timeout": 10,
+            "statusMessage": "하네스: 지배 설계문서 확인"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "너는 AnchorIQ 의미 설계 리뷰어(적대자)다. PostToolUse 훅 입력: $ARGUMENTS. 저장소 루트의 scripts/harness/review-protocol.md 를 Read 한 뒤 그 프로토콜을 정확히 따라 방금 수정된 파일을 리뷰하라. 백엔드 main .java 가 아니면 즉시 통과. 위반은 finding.sh 로 적재하고 block, 깨끗하면 통과.",
+            "timeout": 120,
+            "statusMessage": "하네스: 의미 설계 리뷰(적대자)"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/harness/check-stubs.sh\" --hook",
+            "timeout": 20,
+            "statusMessage": "하네스: 미완성 마커 검사"
+          }
+        ]
+      }
+    ]
+  }
+}
