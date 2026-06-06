@@ -58,6 +58,29 @@ Workflow({ name: 'orchestrate-feature', args: {
 - **써라**: 여러 파일/모듈에 걸친 큰 기능, *독립적으로 쪼개지는* 작업.
 - **쓰지 마라**: 단일 코더로 충분한 작은 변경(오버헤드만 큼), 또는 단위들이 *공유 결정/같은 파일*에 강하게 얽혀 분해가 안 되는 작업(이건 단일 선형 코더가 맞음).
 
+## 감독자(Supervisor) 패턴 — 가변·대량 배치 (`supervise-batch`)
+
+orchestrate-feature가 *정해진 한 기능*을 정적 분해한다면, 감독자는 **대상을 런타임에 *발견*하고 동적 분배**한다 — 항목 수를 미리 모르는 배치/마이그레이션용. 구현: [`scripts/harness/supervise-batch.workflow.js`](../../scripts/harness/supervise-batch.workflow.js).
+
+```mermaid
+flowchart TD
+  IN["task + scope"] --> SV["① 감독자: scope대로 대상 스캔<br/>work-list 발견 (동적) + totalFound·disjoint"]
+  SV --> W1["② 워커 A: 자기 대상만"]
+  SV --> W2["② 워커 B: 자기 대상만"]
+  SV --> W3["② 워커 N: 자기 대상만"]
+  W1 --> VF["③ 단일 검증: 일괄 컴파일"]
+  W2 --> VF
+  W3 --> VF
+  VF --> OUT["성공/실패/드롭 보고"]
+```
+
+- **동적**: 대상을 사람이 미리 안 정함 — 감독자가 scope(예: "X를 import하는 모든 .java")로 *런타임 스캔*. 워커 수도 동시성 cap이 자동 분배(`parallel()`이 곧 동적 디스패처).
+- **orchestrate-feature와 차이**: 정적 분해(한 기능 → 아는 소수 단위) vs 동적 발견(기준 → 가변·미지 대상).
+- **호출**: `Workflow({ scriptPath, args: { task: "각 대상에 할 일", scope: "대상 발견 기준", maxItems: 40 } })`
+- **신뢰성 결정(orchestrate와 동일)**: 항목 disjoint 강제, 워커는 쓰기만(병렬 gradle 락 회피), 단일 Verify가 일괄 컴파일. **no silent truncation**: cap 초과분은 `dropped`로 명시 보고.
+- **언제 쓰나**: 같은 변환을 *여러 독립 대상*에 적용(마이그레이션·일괄 리팩터). 단일 기능이면 orchestrate-feature, 정해진 소수면 직접.
+- **상태**: 저작·문법 검증 완료, *실제 실행(dogfood)은 미검증* — 실제 배치 작업 생길 때 검증 권장.
+
 ## 한계 / 다음 업그레이드
 
 - 현재 병렬 코더는 **메인 트리 직접 쓰기**(파일 disjoint 가정에 의존). 분해자가 disjoint를 잘못 판정하면 클로버 위험 — 통합자 컴파일 게이트가 사후에 잡지만, *사전* 격리는 아님.
