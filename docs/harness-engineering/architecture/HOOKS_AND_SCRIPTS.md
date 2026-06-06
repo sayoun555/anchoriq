@@ -56,7 +56,7 @@ echo '{"tool_name":"Edit","tool_input":{"file_path":"backend/.../controller/Vess
 
 **역할**: 코드를 쓴 **직후**, 추론하는 적대자가 방금 파일을 지배 `plan/` 문서 + AGENTS.md와 대조. grep이 못 잡는 *의미* 위반(DDD 레이어, 트랜잭션 경계, 인터페이스 우선, 캡슐화, 계약)을 잡는다.
 
-**구성**: `.claude/settings.json`의 `type:"agent"` 훅. 프롬프트는 짧고, 실제 리뷰 규칙은 버전관리되는 [`scripts/harness/review-protocol.md`](../../scripts/harness/review-protocol.md)에 분리.
+**구성**: `.claude/settings.json`의 `type:"agent"` 훅. 프롬프트는 짧고, 실제 리뷰 규칙은 버전관리되는 [`scripts/harness/review-protocol.md`](../../../scripts/harness/review-protocol.md)에 분리.
 
 **전파**:
 - 위반 발견 → `finding.sh add ...`로 **DLT 적재**(채널 C) → `ok=false`로 **block**, `reason`이 코더 컨텍스트에 재주입(채널 A).
@@ -64,7 +64,7 @@ echo '{"tool_name":"Edit","tool_input":{"file_path":"backend/.../controller/Vess
 
 **오탐 방지**: "고신뢰·구체적 위반만 block, 확신 없으면 통과"가 프로토콜의 기본값. false positive로 코더를 가두는 게 더 나쁘다.
 
-**비용 노브**: PostToolUse는 매 Edit/Write에 발화한다. 프로토콜 0단계에서 백엔드 main `.java`가 아니면 즉시 통과시켜 비용을 줄인다. 모델은 기본 Haiku(저비용/고빈도) — DDD 적발률을 높이려면 settings.json 훅에 `"model":"claude-sonnet-4-6"`을 추가. 더 줄이려면 matcher를 `Write`(신규 파일)로 좁히거나, Stop 시점 배치 리뷰로 옮긴다. → [troubleshooting/AGENT_HOOK_COST_ON_EVERY_EDIT.md](troubleshooting/AGENT_HOOK_COST_ON_EVERY_EDIT.md)
+**비용 노브**: PostToolUse는 매 Edit/Write에 발화한다. 프로토콜 0단계에서 백엔드 main `.java`가 아니면 즉시 통과시켜 비용을 줄인다. 모델은 기본 Haiku(저비용/고빈도) — DDD 적발률을 높이려면 settings.json 훅에 `"model":"claude-sonnet-4-6"`을 추가. 더 줄이려면 matcher를 `Write`(신규 파일)로 좁히거나, Stop 시점 배치 리뷰로 옮긴다. → [troubleshooting/AGENT_HOOK_COST_ON_EVERY_EDIT.md](../troubleshooting/AGENT_HOOK_COST_ON_EVERY_EDIT.md)
 
 ---
 
@@ -135,4 +135,4 @@ ground-check.sh <file> --test   # + :module:test (행위 신호, 느림)
 - `git push --force *`, `git push -f *` — 강제 푸시
 - `.env` 읽기 차단 — 시크릿이 모델 컨텍스트로 새지 않게
 
-`settings.json`(팀, 커밋) vs `settings.local.json`(개인, gitignore) 분리. 후자에서 **평문 JWT 토큰 3건 제거**, 150여 항목 → 42개 정리. → [troubleshooting/PLAINTEXT_JWT_IN_SETTINGS.md](troubleshooting/PLAINTEXT_JWT_IN_SETTINGS.md)
+`settings.json`(팀, 커밋) vs `settings.local.json`(개인, gitignore) 분리. 후자에서 **평문 JWT 토큰 3건 제거**, 150여 항목 → 42개 정리. → [troubleshooting/PLAINTEXT_JWT_IN_SETTINGS.md](../troubleshooting/PLAINTEXT_JWT_IN_SETTINGS.md)

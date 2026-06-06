@@ -12,7 +12,7 @@
 | ③ | **루프/낭비 감지·교정** — 코더가 redundant exploration·looping 하면 중간에 잡아 교정 | SWE-PRM IBM'25(추론시 PRM, SWE-bench +10.6pp) | 새 process-monitor 훅 | 중 | ⬜ |
 | ④ | **Reflexion 메모리** — fix 반려 시 *왜 실패했는지*를 DLT에 적재 → 다음 시도가 학습 | Reflexion NeurIPS'23(언어적 피드백을 episodic memory에) | `finding.sh`에 reflection 필드 | 중 | ⬜ |
 | ⑤ | **judge 편향 완화** — 패널에 순서 swap·다중 호출 | Zheng NeurIPS'23(position·self-preference bias, swap·2회로 완화) | `verify-findings*.workflow.js` | 중(싸다) | ⬜ |
-| ⑥ | **bounded self-repair 루프** — ground-check 종료조건 + max-N + escalate | [SELF_REPAIR_GUARDS.md](SELF_REPAIR_GUARDS.md) (Tier A/B/C) | 새 워크플로우 | 높음(크다) | ⬜(설계만) |
+| ⑥ | **bounded self-repair 루프** — ground-check 종료조건 + max-N + escalate | [SELF_REPAIR_GUARDS.md](../research/SELF_REPAIR_GUARDS.md) (Tier A/B/C) | 새 워크플로우 | 높음(크다) | ⬜(설계만) |
 
 ## 스킬스 + MCP — 검증 차원별 (이 세션에 실재)
 

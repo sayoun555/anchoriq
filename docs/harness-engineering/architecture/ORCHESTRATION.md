@@ -1,7 +1,7 @@
 # 대규모 코드 작성 오케스트레이션
 
 > 큰 기능을 *여러 파일/모듈*에 걸쳐 구현할 때, 단일 코더의 컨텍스트 압박을 줄이면서 멀티에이전트 코딩의 실패모드(공유 코드 상태 충돌)는 피하는 패턴.
-> 구현: [`scripts/harness/orchestrate-feature.workflow.js`](../../scripts/harness/orchestrate-feature.workflow.js). 근거: [RESEARCH_HARNESS_AND_MULTIAGENT.md](RESEARCH_HARNESS_AND_MULTIAGENT.md).
+> 구현: [`scripts/harness/orchestrate-feature.workflow.js`](../../../scripts/harness/orchestrate-feature.workflow.js). 근거: [RESEARCH_HARNESS_AND_MULTIAGENT.md](../research/RESEARCH_HARNESS_AND_MULTIAGENT.md).
 
 ## 왜 — 순진한 멀티에이전트 코딩은 품질을 떨어뜨린다
 
@@ -60,7 +60,7 @@ Workflow({ name: 'orchestrate-feature', args: {
 
 ## 감독자(Supervisor) 패턴 — 가변·대량 배치 (`supervise-batch`)
 
-orchestrate-feature가 *정해진 한 기능*을 정적 분해한다면, 감독자는 **대상을 런타임에 *발견*하고 동적 분배**한다 — 항목 수를 미리 모르는 배치/마이그레이션용. 구현: [`scripts/harness/supervise-batch.workflow.js`](../../scripts/harness/supervise-batch.workflow.js).
+orchestrate-feature가 *정해진 한 기능*을 정적 분해한다면, 감독자는 **대상을 런타임에 *발견*하고 동적 분배**한다 — 항목 수를 미리 모르는 배치/마이그레이션용. 구현: [`scripts/harness/supervise-batch.workflow.js`](../../../scripts/harness/supervise-batch.workflow.js).
 
 ```mermaid
 flowchart TD
@@ -85,4 +85,4 @@ flowchart TD
 
 - 현재 병렬 코더는 **메인 트리 직접 쓰기**(파일 disjoint 가정에 의존). 분해자가 disjoint를 잘못 판정하면 클로버 위험 — 통합자 컴파일 게이트가 사후에 잡지만, *사전* 격리는 아님.
 - **v2(더 강한 격리)**: 병렬 코더를 worktree 격리로 돌리고, 각자 `git diff`를 구조화 출력으로 반환 → 통합자가 `git apply`로 메인에 병합. 충돌을 사전 격리하나 diff 전달 비용·복잡도↑. 신뢰성 더 필요할 때.
-- 검증 단계(④)는 단일 적대자. 더 엄격히 하려면 채널 B 다수결 패널([verify-findings-grounded](../../scripts/harness/verify-findings-grounded.workflow.js))로 교체 가능.
+- 검증 단계(④)는 단일 적대자. 더 엄격히 하려면 채널 B 다수결 패널([verify-findings-grounded](../../../scripts/harness/verify-findings-grounded.workflow.js))로 교체 가능.

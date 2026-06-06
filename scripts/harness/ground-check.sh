@@ -2,7 +2,7 @@
 #
 # ground-check.sh — AnchorIQ 하네스 외부 grounding (의미 적대자 보강)
 #
-# 연구 근거(docs/harness-engineering/RESEARCH_HARNESS_AND_MULTIAGENT.md §2):
+# 연구 근거(docs/harness-engineering/research/RESEARCH_HARNESS_AND_MULTIAGENT.md §2):
 #   "LLM이 LLM을 평가하는 self-critique는 약하다. 외부 검증 신호(컴파일/테스트)가 핵심."
 #   (Reflexion 80→91%, Renze&Guven +14.6% — 모두 외부 grounding에 의존)
 #

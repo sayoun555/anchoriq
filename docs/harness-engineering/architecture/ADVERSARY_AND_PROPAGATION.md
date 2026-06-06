@@ -50,7 +50,7 @@ check-stubs.sh (grep)   →  "// 임시" 라는 글자       →  구문(syntact
 
 ### 채널 A — 의미 리뷰어 (PostToolUse agent)
 
-`.claude/settings.json`의 `type:"agent"` 훅이 [`scripts/harness/review-protocol.md`](../../scripts/harness/review-protocol.md)를 따라 방금 쓴 백엔드 `.java`를 리뷰한다. 위반이면 `finding.sh add`로 적재(C) + block(A). 깨끗하면 통과.
+`.claude/settings.json`의 `type:"agent"` 훅이 [`scripts/harness/review-protocol.md`](../../../scripts/harness/review-protocol.md)를 따라 방금 쓴 백엔드 `.java`를 리뷰한다. 위반이면 `finding.sh add`로 적재(C) + block(A). 깨끗하면 통과.
 
 프로토콜 핵심: **고신뢰·구체적 위반만 block**, 확신 없으면 통과. (false positive가 코더를 가두는 게 더 나쁘다 — 적대자 검증의 기본 규율.)
 
@@ -80,7 +80,7 @@ bash scripts/harness/finding.sh resolve <id> --note "RiskScoringDomainService로
 
 ### 채널 B — 다수결 검증단 (Workflow)
 
-**스크립트**: [`scripts/harness/verify-findings.workflow.js`](../../scripts/harness/verify-findings.workflow.js).
+**스크립트**: [`scripts/harness/verify-findings.workflow.js`](../../../scripts/harness/verify-findings.workflow.js).
 DLT의 열린 finding을, finding마다 **3개의 서로 다른 렌즈**를 가진 적대자가 인용 코드+지배 문서를 직접 읽고 **반증(refute) 시도** → 과반(2/3) 반증이면 거짓양성으로 폐기, 살아남으면 confirmed.
 
 ```
