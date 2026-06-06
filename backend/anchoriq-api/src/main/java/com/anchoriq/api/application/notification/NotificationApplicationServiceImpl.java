@@ -1,6 +1,7 @@
 package com.anchoriq.api.application.notification;
 
 import com.anchoriq.api.dto.request.notification.NotificationRuleRequest;
+import com.anchoriq.api.dto.request.notification.NotificationSettingsRequest;
 import com.anchoriq.api.dto.request.notification.NotificationTestRequest;
 import com.anchoriq.api.dto.response.notification.NotificationHistoryResponse;
 import com.anchoriq.api.dto.response.notification.NotificationRuleResponse;
@@ -9,8 +10,10 @@ import com.anchoriq.automation.notification.NotificationDispatcher;
 import com.anchoriq.core.common.exception.EntityNotFoundException;
 import com.anchoriq.core.domain.operation.notification.model.NotificationChannel;
 import com.anchoriq.core.domain.operation.notification.model.NotificationRule;
+import com.anchoriq.core.domain.operation.notification.model.NotificationSettings;
 import com.anchoriq.core.domain.operation.notification.repository.NotificationHistoryRepository;
 import com.anchoriq.core.domain.operation.notification.repository.NotificationRuleRepository;
+import com.anchoriq.core.domain.operation.notification.repository.NotificationSettingsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +31,7 @@ public class NotificationApplicationServiceImpl implements NotificationApplicati
 
     private final NotificationRuleRepository ruleRepository;
     private final NotificationHistoryRepository historyRepository;
+    private final NotificationSettingsRepository settingsRepository;
     private final NotificationDispatcher notificationDispatcher;
 
     @Override
@@ -87,18 +91,25 @@ public class NotificationApplicationServiceImpl implements NotificationApplicati
     @Override
     @Transactional(readOnly = true)
     public NotificationSettingsResponse getSettings(Long userId) {
-        List<NotificationRule> activeRules = ruleRepository.findActiveRulesByUserId(userId);
+        int activeRuleCount = ruleRepository.findActiveRulesByUserId(userId).size();
+        return settingsRepository.findByUserId(userId)
+                .map(settings -> NotificationSettingsResponse.from(settings, activeRuleCount))
+                .orElseGet(() -> NotificationSettingsResponse.empty(activeRuleCount));
+    }
 
-        boolean slackEnabled = activeRules.stream()
-                .anyMatch(rule -> rule.getChannel() == NotificationChannel.SLACK);
-        boolean emailEnabled = activeRules.stream()
-                .anyMatch(rule -> rule.getChannel() == NotificationChannel.EMAIL);
-
-        return NotificationSettingsResponse.builder()
-                .slackEnabled(slackEnabled)
-                .emailEnabled(emailEnabled)
-                .activeRuleCount(activeRules.size())
-                .build();
+    @Override
+    @Transactional
+    public NotificationSettingsResponse updateSettings(Long userId, NotificationSettingsRequest request) {
+        NotificationSettings settings = settingsRepository.findByUserId(userId)
+                .orElseGet(() -> NotificationSettings.createDefault(userId));
+        settings.update(
+                request.isSlackEnabled(),
+                request.getSlackWebhookUrl(),
+                request.isEmailEnabled(),
+                request.getEmailAddress());
+        NotificationSettings saved = settingsRepository.save(settings);
+        int activeRuleCount = ruleRepository.findActiveRulesByUserId(userId).size();
+        return NotificationSettingsResponse.from(saved, activeRuleCount);
     }
 
     private NotificationRule findRuleOwnedBy(Long userId, Long ruleId) {

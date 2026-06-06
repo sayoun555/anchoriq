@@ -66,9 +66,19 @@ coverage/
 # Legacy frontend (Vite version - migrated to Next.js)
 frontend-vite/
 
-# Claude Code — 팀 하네스(settings.json)는 추적, 개인/비밀(settings.local.json)은 무시
+# Claude Code — 팀 하네스(settings.json + agents)는 추적, 개인/비밀(settings.local.json)은 무시
 .claude/*
 !.claude/settings.json
+!.claude/agents/
+!.claude/agents/**
 
 # 하네스 findings 원장 — 런타임 상태(메커니즘은 추적, 데이터는 무시)
 scripts/harness/findings.jsonl
+
+# 문서 빌드 중간산물 — md→html→pdf 파이프라인의 생성 html (PDF 산출물은 커밋함)
+docs/HARNESS_ENGINEERING_REPORT.html
+docs/CS_FINAL_COMPLETE.html
+docs/ANCHORIQ_CS_COMPLETE_GUIDE.html
+
+# 외부 연구 논문 PDF — docs/papers/README.md의 arXiv ID로 재다운로드(42MB repo 비대 방지)
+docs/papers/*.pdf

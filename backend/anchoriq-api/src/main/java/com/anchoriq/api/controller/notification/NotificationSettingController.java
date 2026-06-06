@@ -1,6 +1,7 @@
 package com.anchoriq.api.controller.notification;
 
 import com.anchoriq.api.application.notification.NotificationApplicationService;
+import com.anchoriq.api.dto.request.notification.NotificationSettingsRequest;
 import com.anchoriq.api.dto.request.notification.NotificationTestRequest;
 import com.anchoriq.api.dto.response.notification.NotificationHistoryResponse;
 import com.anchoriq.api.dto.response.notification.NotificationSettingsResponse;
@@ -37,9 +38,9 @@ public class NotificationSettingController {
 
     @PutMapping("/settings")
     public ResponseEntity<ApiResponse<NotificationSettingsResponse>> updateSettings(
-            @AuthenticationPrincipal UserPrincipal principal) {
-        // 설정은 규칙 기반으로 관리되므로, 규칙 활성/비활성으로 제어
-        NotificationSettingsResponse response = notificationService.getSettings(principal.userId());
+            @AuthenticationPrincipal UserPrincipal principal,
+            @Valid @RequestBody NotificationSettingsRequest request) {
+        NotificationSettingsResponse response = notificationService.updateSettings(principal.userId(), request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

@@ -1,0 +1,178 @@
+{
+  "summary": "도구 쥔 검증단 — 각 렌즈가 읽기만 하지 않고 실제 도구(컴파일·검색)로 grounding 후 판정 (채널 B 고도화 ①)",
+  "agentCount": 15,
+  "logs": [
+    "5건 검증 시작 (각 3렌즈 — 도구 grounding)",
+    "판정 완료 — confirmed 0 / refuted 5 · 도구 grounding 15표"
+  ],
+  "result": {
+    "summary": {
+      "total": 5,
+      "confirmed": 0,
+      "refuted": 5,
+      "groundedVotes": 15
+    },
+    "verdicts": [
+      {
+        "id": "h2-1",
+        "file": "backend/anchoriq-automation/src/main/java/com/anchoriq/automation/notification/NotificationDispatcherImpl.java",
+        "desc": "resolveDestination()이 rule.getConditionValue()를 destination으로 반환한다",
+        "confirmed": false,
+        "refutedVotes": 3,
+        "total": 3,
+        "groundedVotes": 3,
+        "votes": [
+          {
+            "lens": "execution-grounded",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "ground-check.sh output: \"GROUNDING: ✅ :anchoriq-automation:compileJava 통과 (타입/시그니처 OK)\". Read of NotificationDispatcherImpl.java lines 101-106: resolveDestination returns settingsRepository.findByUserId(rule.getUserId()).filter(s -> s.hasDestinationFor(rule.getChannel())).map(s -> s.destinationFor(rule.getChannel())).orElse(null). grep \"getConditionValue|conditionValue\" across backend returns ZERO hits in NotificationDispatcherImpl.java — getConditionValue is only used inside NotificationRule.matches() and DTO mapping.",
+            "reason": "finding의 핵심 사실 주장(resolveDestination이 rule.getConditionValue()를 반환)이 실제 소스와 정면으로 모순된다. 해당 메서드는 NotificationSettings 리포지토리 조회로 채널별 실제 발송 대상(Slack/이메일)을 가져오고 없으면 null을 반환하며, getConditionValue()는 이 파일에서 단 한 번도 호출되지 않는다. 모듈 컴파일도 통과하여 거짓양성으로 판정한다."
+          },
+          {
+            "lens": "spec-retrieval",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Read NotificationDispatcherImpl.java: resolveDestination() (L101-106) = `settingsRepository.findByUserId(rule.getUserId()).filter(settings -> settings.hasDestinationFor(rule.getChannel())).map(settings -> settings.destinationFor(rule.getChannel())).orElse(null)` — returns NotificationSettings destination, NOT rule.getConditionValue(). plan-search section AGENTS.md '10' + grep CLAUDE.md L181: rule 10 = '정석적 해결: 임시방편/꼼수/우회 금지, 공식 권장 방식'. grep 'getConditionValue' in backend/anchoriq-automation/ = no matches (string absent from module).",
+            "reason": "resolveDestination()은 rule.getConditionValue()가 아니라 사용자별 NotificationSettings의 destinationFor(channel)을 조회하고 미설정 시 null로 발송을 생략하는 정석적 구현이다. 주장된 getConditionValue 코드는 모듈 전체에 존재하지 않아 finding은 거짓양성이다."
+          },
+          {
+            "lens": "code-reality",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Read NotificationDispatcherImpl.java lines 101-106: `private String resolveDestination(NotificationRule rule) { return settingsRepository.findByUserId(rule.getUserId()).filter(settings -> settings.hasDestinationFor(rule.getChannel())).map(settings -> settings.destinationFor(rule.getChannel())).orElse(null); }`. Grep for \"getConditionValue|ConditionValue\" in the file returned exit:1 (zero matches). Initial grep across the automation module also found no occurrence of getConditionValue.",
+            "reason": "resolveDestination()은 rule.getConditionValue()를 반환하지 않는다. 실제로는 사용자 알림 설정(settingsRepository)에서 채널별 실제 발송 대상을 조회하고 없으면 null을 반환하는 정석적 구현이며, getConditionValue는 파일 어디에도 존재하지 않는다(grep 0건). 주장이 코드와 정면으로 배치되는 거짓양성이다."
+          }
+        ]
+      },
+      {
+        "id": "h2-2",
+        "file": "backend/anchoriq-core/src/main/java/com/anchoriq/core/domain/operation/notification/model/NotificationSettings.java",
+        "desc": "NotificationSettings가 public setter를 노출한다",
+        "confirmed": false,
+        "refutedVotes": 3,
+        "total": 3,
+        "groundedVotes": 3,
+        "votes": [
+          {
+            "lens": "execution-grounded",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "ground-check.sh 출력: \"GROUNDING: ✅ :anchoriq-core:compileJava 통과 (타입/시그니처 OK)\". grep \"Setter|public void set\" 결과: \"---NO SETTER FOUND---\". Read로 확인한 파일: 클래스에 @Getter만 있고 @Setter 없음(line 17), 상태 변경은 update(...) 메서드(line 67-74)와 정적 팩토리 createDefault(line 60)로만 이루어지며 생성자는 private, @NoArgsConstructor(access = PROTECTED)임.",
+            "reason": "NotificationSettings는 @Getter만 사용하고 @Setter나 손수 작성한 public setX 메서드가 전혀 없다. 상태 변경은 도메인 의도가 담긴 update() 메서드로만 캡슐화돼 있어 OOP 캡슐화 규칙을 오히려 준수한다. 따라서 \"public setter 노출\" 주장은 거짓양성이다."
+          },
+          {
+            "lens": "spec-retrieval",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Read of NotificationSettings.java: class annotated only with `@Getter` and `@NoArgsConstructor(access = AccessLevel.PROTECTED)` — no `@Setter`. grep -niE \"@Setter|public void set\" returned exit 1 (zero matches); grep -niE \"Setter|set[A-Z]\" also exit 1 (no matches). The only mutators are domain methods `update(...)` (line 67) and static factory `createDefault(...)` (line 60). Governing OOP spec located in CLAUDE.md project instructions: \"OOP: 캡슐화, Tell Don't Ask, Getter/Setter 지양\" (find found only frontend/AGENTS.md; plan-search.sh found no 캡슐화 header). The class conforms to the spec.",
+            "reason": "파일에 @Setter도 손으로 쓴 public setter도 전혀 없으며(grep 두 건 모두 0 매치), 상태 변경은 의도를 드러내는 도메인 메서드 update/createDefault로만 이뤄진다. 이는 지배 규칙 \"Getter/Setter 지양, Tell Don't Ask\"에 정확히 부합하므로 주장은 거짓양성이다."
+          },
+          {
+            "lens": "code-reality",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Read NotificationSettings.java: class annotated only with @Getter (L17) and @NoArgsConstructor(access=PROTECTED) (L18); all fields private (L21-47); mutation only via static factory createDefault (L60) and update(...) (L67). grep -nE \"Setter|@Data|public void set|set[A-Z]...(\" returned no matches (exit 1, no output). Second grep for \"public void set|@Setter|@Data\" also empty.",
+            "reason": "파일에 public setter도 @Setter/@Data도 존재하지 않으며, 모든 필드는 private이고 상태 변경은 createDefault 팩토리와 update 도메인 메서드로만 이루어진다. 주장(public setter 노출)은 도구 출력상 실재하지 않는 거짓양성이다."
+          }
+        ]
+      },
+      {
+        "id": "h2-3",
+        "file": "backend/anchoriq-core/src/main/java/com/anchoriq/core/domain/operation/notification/model/NotificationSettings.java",
+        "desc": "destinationFor()가 channel에 대해 switch를 쓴다 — 2값 enum이지만 OCP상 다형성(채널별 클래스)으로 빼야 할 위반이다",
+        "confirmed": false,
+        "refutedVotes": 3,
+        "total": 3,
+        "groundedVotes": 3,
+        "votes": [
+          {
+            "lens": "execution-grounded",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "ground-check.sh 출력: \"GROUNDING: 대상 모듈 = :anchoriq-core / GROUNDING: ✅ :anchoriq-core:compileJava 통과 (타입/시그니처 OK)\". plan-search grep \"OCP\" → plan/AGENTS.md:65 \"개방-폐쇄 원칙(OCP): 확장에는 열려 있고, 수정에는 닫혀 있도록 인터페이스와 다형성을 적극 활용하라.\" NotificationChannel.java enum = {SLACK, EMAIL} 2값. 파일 Read: destinationFor()는 default 없는 exhaustive arrow-switch이고, 대상(slackEnabled/slackWebhookUrl/emailEnabled/emailAddress)은 JPA @Entity 영속 컬럼.",
+            "reason": "컴파일 통과로 타입/시그니처 차원은 grounding-clean이며, switch는 default 없는 exhaustive enum 분기라 채널 추가 시 컴파일 에러로 강제 처리되는 정석 패턴이다. 발송 대상이 고정 DB 컬럼(영속 데이터)이라 채널 추가는 어차피 스키마/컬럼 변경이 필요하므로 채널별 클래스 다형성이 이 클래스를 수정에 닫지 못하며, OCP 규칙은 다형성을 '적극 활용'하라는 일반 지침일 뿐 2값 enum switch를 금지하지 않는다 — 거짓양성."
+          },
+          {
+            "lens": "spec-retrieval",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "plan-search.sh section \"plan/AGENTS.md\" \"SOLID\" → \"개방-폐쇄 원칙(OCP): 확장에는 열려 있고, 수정에는 닫혀 있도록 인터페이스와 다형성을 적극 활용하라.\" (line 65). plan-search.sh grep \"switch\" → plan/AUTH_PAYMENT.md:77 \"return switch (currency) { case KRW -> tossGateway; default -> stripeGateway; }\" — 설계 문서 자체가 소형 switch 라우팅을 정석 패턴으로 규정. Read NotificationChannel.java → enum { SLACK, EMAIL } (닫힌 2값). Read NotificationSettings.java:80-85 → switch이 채널을 영속 컬럼(slackWebhookUrl/emailAddress)에 매핑. find → 실제 채널 다형성(Notifier/SlackNotifier/EmailNotifier)은 anchoriq-automation에 이미 존재.",
+            "reason": "지배 spec(OCP)은 다형성을 \"적극 활용\"하라는 지향 가이드일 뿐 switch 금지 규정이 아니며, 프로젝트 설계 문서(AUTH_PAYMENT.md)가 소형 enum switch 라우팅을 정석 패턴으로 명시해 선례가 존재한다. 여기 switch은 닫힌 2값 enum을 같은 애그리거트의 영속 컬럼에 매핑하는 것으로, 채널별 클래스로 분리하면 단일 엔티티를 쪼개는 더 나쁜 설계가 된다. 실제 채널 발송 다형성은 Notifier 계층에 이미 구현돼 있으므로 거짓양성이다."
+          },
+          {
+            "lens": "code-reality",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Read NotificationSettings.java:80-85 — `public String destinationFor(NotificationChannel channel){ return switch(channel){ case SLACK -> slackEnabled ? slackWebhookUrl : null; case EMAIL -> emailEnabled ? emailAddress : null; }; }`. grep confirmed the switch at line 81. `cat NotificationChannel.java` shows a closed 2-value enum {SLACK, EMAIL}. grep across backend/ found no other channel switch (only a delegating call in NotificationDispatcherImpl.java:104).",
+            "reason": "코드 경로는 실재하나 OCP 위반으로 막을 가치는 없다. 닫힌 2값 enum에 대한 default 없는 exhaustive switch expression은 컴파일러가 망라성을 강제하는 정석 패턴이며, 각 분기가 읽는 데이터(slackWebhookUrl/emailAddress)는 이 엔티티의 별개 영속 컬럼이라 채널별 다형 클래스로 뺄 행위 자체가 없다. switch가 코드베이스에 산재하지도 않으므로 채널 전략 클래스 강요는 과설계다."
+          }
+        ]
+      },
+      {
+        "id": "h2-4",
+        "file": "backend/anchoriq-api/src/main/java/com/anchoriq/api/application/notification/NotificationApplicationServiceImpl.java",
+        "desc": "getSettings()가 응답 객체를 inline map/orElseGet 분기로 조립한다 — 응답 조립 로직이 Application에 있어 SRP 위반이다",
+        "confirmed": false,
+        "refutedVotes": 3,
+        "total": 3,
+        "groundedVotes": 3,
+        "votes": [
+          {
+            "lens": "execution-grounded",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "ground-check.sh 출력: \"GROUNDING: ✅ :anchoriq-api:compileJava 통과 (타입/시그니처 OK)\". Read(NotificationSettingsResponse.java): 실제 응답 조립(.builder().slackEnabled(...).build() 필드 매핑)은 DTO 정적 팩토리 from(settings, activeRuleCount)와 empty(activeRuleCount) 안에 전부 캡슐화됨. Read(NotificationApplicationServiceImpl.java:93-98): getSettings는 repository 조회 후 .map(settings -> ...from(...)).orElseGet(() -> ...empty(...))로 팩토리에 위임만 함. grep로 Bookmark/Payment/Sanction/User/Workflow/Vessel/Weather/Port 등 모든 형제 Application 서비스가 동일한 .map(...::from) 위임 패턴 사용 확인.",
+            "reason": "getSettings()는 inline으로 응답 객체를 조립하지 않는다 — 필드 단위 빌더 조립은 전부 NotificationSettingsResponse.from/empty 팩토리에 있고, Application은 존재/부재 분기를 골라 팩토리에 위임만 한다. Optional.map().orElseGet()로 present→map, absent→default를 선택하는 것은 응답 조립이 아니라 오케스트레이션이며 코드베이스 전반의 정석 패턴이다. 컴파일도 통과해 grounding-clean이므로 SRP 위반은 실재하지 않는다(거짓양성)."
+          },
+          {
+            "lens": "spec-retrieval",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "plan-search.sh + Read로 지배 spec 절 인용. (1) AGENTS.md 8.DDD 절: \"Application Service는 오케스트레이션만 (비즈니스 로직 X)\" + 레이어 규칙 \"api/ → Controller(...응답 변환만)\". (2) ARCHITECTURE.md L314-322 표준 예시: `RiskApplicationService`가 여러 repository에서 fetch 후 delegate하고 결과 반환 — 본 finding의 getSettings()와 동일 패턴. (3) NotificationSettingsResponse.java 전문 확인: 실제 필드별 응답 조립(builder)은 DTO 정적 팩토리 from()/empty() 안에 캡슐화돼 있음. getSettings()는 `findActiveRulesByUserId().size()` + `findByUserId().map(from).orElseGet(empty)`로 repository fetch와 Optional 유무에 따른 팩토리 선택만 수행.",
+            "reason": "finding의 전제(\"inline map/orElseGet 분기로 응답 객체를 조립\")가 사실과 다르다 — 실제 응답 조립(builder, 필드 매핑)은 DTO 정적 팩토리 from()/empty()에 들어있고, Application은 repository fetch + Optional 유무에 따른 팩토리 선택(오케스트레이션)만 한다. 비즈니스 로직이 없고 spec의 표준 Application Service 예시와 동일한 패턴이므로 SRP 위반이 아니다."
+          },
+          {
+            "lens": "code-reality",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Read NotificationApplicationServiceImpl.java lines 91-98: getSettings() does `settingsRepository.findByUserId(userId).map(settings -> NotificationSettingsResponse.from(settings, activeRuleCount)).orElseGet(() -> NotificationSettingsResponse.empty(activeRuleCount))`. grep confirmed lines 96-97 hold the map/orElseGet. Read NotificationSettingsResponse.java lines 23-40: the actual field-by-field assembly (builder mapping slackEnabled/slackWebhookUrl/emailEnabled/emailAddress/activeRuleCount) lives in the DTO static factories from(...) and empty(...), NOT in the service. grep also shows the same .map(Response::from) delegation idiom at lines 56 and 80.",
+            "reason": "응답 객체의 실제 필드 조립(builder)은 DTO 정적 팩토리 from()/empty()에 캡슐화되어 있고, getSettings()의 map/orElseGet은 Optional 분기 후 DTO 팩토리에 위임하는 오케스트레이션일 뿐이다. 이는 getRules/getHistory와 동일한 코드베이스 관용구로, Application이 인라인으로 응답을 조립한다는 주장은 사실과 다르다(거짓양성)."
+          }
+        ]
+      },
+      {
+        "id": "h2-5",
+        "file": "backend/anchoriq-automation/src/main/java/com/anchoriq/automation/notification/NotificationDispatcherImpl.java",
+        "desc": "resolveDestination()이 Optional을 풀어 null을 반환한다 — null 반환은 코드 스멜이며 Optional을 끝까지 들고 가야 한다",
+        "confirmed": false,
+        "refutedVotes": 3,
+        "total": 3,
+        "groundedVotes": 3,
+        "votes": [
+          {
+            "lens": "execution-grounded",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "bash scripts/harness/ground-check.sh ...NotificationDispatcherImpl.java → \"GROUNDING: ✅ :anchoriq-automation:compileJava 통과 (타입/시그니처 OK)\". Read of NotificationDispatcherImpl.java lines 81-106 shows resolveDestination() returns String via .orElse(null) and the single caller (sendAndRecord) immediately guards: \"if (destination == null) { log.warn(...); return; }\". cat Notifier.java shows the downstream sink signature \"boolean send(String destination, String subject, String message)\" — requires a plain String, not Optional.",
+            "reason": "컴파일은 통과해 타입/시그니처 차원은 grounding-clean이다. resolveDestination()은 단일 호출자를 가진 private 헬퍼로, .orElse(null) 직후 호출부에서 null 가드(if(destination==null){log;return;})로 즉시 처리하며 최종 소비처 Notifier.send(String,...)가 Optional이 아닌 String을 요구한다. Optional을 끝까지 들고 가라는 처방은 String 싱크에 막혀 명확한 개선이 아니라 취향 차이이며, 막을 가치가 있는 실재 위반으로 보기 어렵다(거짓양성)."
+          },
+          {
+            "lens": "spec-retrieval",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "plan-search.sh grep \"null 반환\" → \"(\\\"null 반환\\\" plan/에서 못 찾음)\"; grep \"Optional\" → only APPLICATION_YML_DESIGN.md:51 \".env import\" (unrelated). plan-search.sh section \"plan/AGENTS.md\" \"Clean Code\" → 단 3개 bullet뿐(명확한 네이밍 / 단일책임 메서드 / 주석 없는 자기설명 코드), null·Optional 언급 0. grep -rniE \"null을 반환|return null|Optional.*반환|orElse(null)|코드 스멜|NPE|null check\" plan/ → 출력 0줄. 코드: resolveDestination()은 private(101행)이고 Javadoc(97-100행)이 null 계약을 명시, 유일 호출처 sendAndRecord()가 82-86행에서 즉시 null-check 후 log.warn + skip 처리.",
+            "reason": "지배 spec(AGENTS.md Clean Code 절 및 전체 plan/ 문서)에 \"null 반환 금지\"나 \"Optional을 끝까지 들고 가라\"는 규칙이 전혀 존재하지 않는다(도구 출력 0건). 게다가 해당 메서드는 private이고 null 계약을 Javadoc으로 명시했으며 유일 호출처에서 즉시 null-check 후 안전하게 skip하므로, 일반론적 best-practice를 근거로 한 거짓양성으로 닫는 것이 타당하다."
+          },
+          {
+            "lens": "code-reality",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Read NotificationDispatcherImpl.java lines 1-128. resolveDestination is at line 101-106: `private String resolveDestination(NotificationRule rule) { return settingsRepository.findByUserId(rule.getUserId()).filter(...).map(...).orElse(null); }` — confirms it unwraps Optional via .orElse(null). grep output confirms only two references: definition (L101) and single call site (L81). Caller sendAndRecord L81-86 immediately guards: `String destination = resolveDestination(rule); if (destination == null) { log.warn(...); return; }`. Javadoc L97-100 explicitly documents null-as-skip semantics.",
+            "reason": "코드 경로 자체는 실재하지만(Optional을 .orElse(null)로 풀어 null 반환), 이는 private 헬퍼 메서드이며 유일한 호출부(L81)가 즉시 null-체크 가드로 소비하고 Javadoc에 null 의미가 명시돼 있어 null이 공개 API로 새지 않고 완전히 봉인된 방어적 관용구다. 'Optional을 끝까지 들고 가라'는 스타일 선호일 뿐 강제 규칙이 아니며, 가둘 가치가 없는 거짓양성에 가깝다."
+          }
+        ]
+      }
+    ]
+  }
+}

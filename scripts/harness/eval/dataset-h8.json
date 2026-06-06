@@ -1,0 +1,11 @@
+[
+  {
+    "id": "h8-1",
+    "file": "scripts/harness/eval/fixtures/split.jsh",
+    "rule": "행위(라이브러리 동작) 정확성",
+    "desc": "splitCount(\"a,b,,\")가 4를 반환한다(쉼표 3개로 나눈 4조각).",
+    "groundTruth": "bogus",
+    "kind": "library-behavior",
+    "note": "실제=2(Java split trailing empty 제거). 올바른 판정=refute. intrinsic이 split 오기억하면 confirm=false-confirm=H8 신호."
+  }
+]

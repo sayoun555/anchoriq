@@ -1,0 +1,42 @@
+[
+  {
+    "id": "h2-1",
+    "file": "backend/anchoriq-automation/src/main/java/com/anchoriq/automation/notification/NotificationDispatcherImpl.java",
+    "rule": "AGENTS 규칙 10",
+    "desc": "resolveDestination()이 rule.getConditionValue()를 destination으로 반환한다",
+    "groundTruth": "bogus",
+    "kind": "clear"
+  },
+  {
+    "id": "h2-2",
+    "file": "backend/anchoriq-core/src/main/java/com/anchoriq/core/domain/operation/notification/model/NotificationSettings.java",
+    "rule": "OOP 캡슐화",
+    "desc": "NotificationSettings가 public setter를 노출한다",
+    "groundTruth": "bogus",
+    "kind": "clear"
+  },
+  {
+    "id": "h2-3",
+    "file": "backend/anchoriq-core/src/main/java/com/anchoriq/core/domain/operation/notification/model/NotificationSettings.java",
+    "rule": "SOLID — OCP",
+    "desc": "destinationFor()가 channel에 대해 switch를 쓴다 — 2값 enum이지만 OCP상 다형성(채널별 클래스)으로 빼야 할 위반이다",
+    "groundTruth": "borderline",
+    "kind": "borderline"
+  },
+  {
+    "id": "h2-4",
+    "file": "backend/anchoriq-api/src/main/java/com/anchoriq/api/application/notification/NotificationApplicationServiceImpl.java",
+    "rule": "SRP — Application은 오케스트레이션만",
+    "desc": "getSettings()가 응답 객체를 inline map/orElseGet 분기로 조립한다 — 응답 조립 로직이 Application에 있어 SRP 위반이다",
+    "groundTruth": "borderline",
+    "kind": "borderline"
+  },
+  {
+    "id": "h2-5",
+    "file": "backend/anchoriq-automation/src/main/java/com/anchoriq/automation/notification/NotificationDispatcherImpl.java",
+    "rule": "Clean Code — null 반환",
+    "desc": "resolveDestination()이 Optional을 풀어 null을 반환한다 — null 반환은 코드 스멜이며 Optional을 끝까지 들고 가야 한다",
+    "groundTruth": "borderline",
+    "kind": "borderline"
+  }
+]

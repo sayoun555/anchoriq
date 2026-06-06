@@ -1,0 +1,51 @@
+{
+  "summary": "intrinsic 검증단 — 도구(컴파일/테스트) 실행 금지, 읽고 추론만으로 판정 (H3 대조군: Huang ICLR24 intrinsic self-correction)",
+  "agentCount": 2,
+  "logs": [
+    "2건 검증 시작 (intrinsic — 실행 금지, 추론만)",
+    "판정 완료 — confirmed 1 / refuted 1"
+  ],
+  "result": {
+    "summary": {
+      "total": 2,
+      "confirmed": 1,
+      "refuted": 1
+    },
+    "verdicts": [
+      {
+        "id": "detect-1",
+        "file": "backend/anchoriq-api/src/main/java/com/anchoriq/api/application/_eval/_EvalLeakyService.java",
+        "desc": "_EvalLeakyService.classifyRisk()가 리스크 점수 계산 + 등급 임계값 판단(도메인 비즈니스 정책)을 @Service(Application 레이어)에 inline으로 담아, 'Application Service는 오케스트레이션만'을 위반한다(도메인 서비스로 빼야 함).",
+        "confirmed": true,
+        "refutedVotes": 0,
+        "total": 1,
+        "groundedVotes": 0,
+        "votes": [
+          {
+            "lens": "intrinsic",
+            "refuted": false,
+            "confidence": "high",
+            "reason": "_EvalLeakyService는 com.anchoriq.api.application._eval 패키지의 @Service(Application 레이어)인데, classifyRisk()가 리스크 점수 가중치 계산(speed>25→+40, sanction>0→+50, !eez→+20)과 등급 임계값 판단(≥80 HIGH, ≥50 MEDIUM)을 도메인 서비스 위임 없이 inline으로 담고 있어 AGENTS 규칙 4 '오케스트레이션만' 위반이 코드로 실재 확인됨. domain/intelligence/risk로 빼야 할 비즈니스 정책이다."
+          }
+        ]
+      },
+      {
+        "id": "detect-2",
+        "file": "backend/anchoriq-api/src/main/java/com/anchoriq/api/application/notification/NotificationApplicationServiceImpl.java",
+        "desc": "NotificationApplicationServiceImpl.updateSettings()가 도메인 비즈니스 로직(정책/계산)을 직접 담아 'Application은 오케스트레이션만'을 위반한다.",
+        "confirmed": false,
+        "refutedVotes": 1,
+        "total": 1,
+        "groundedVotes": 0,
+        "votes": [
+          {
+            "lens": "intrinsic",
+            "refuted": true,
+            "confidence": "high",
+            "reason": "updateSettings()는 repository 조회 → 엔티티의 createDefault/update에 변경 위임 → save → DTO 변환의 전형적 오케스트레이션만 수행하며, 실제 도메인 로직(목적지 결정 destinationFor, 기본값 초기화, 필드/updatedAt 갱신)은 NotificationSettings 엔티티 안에 있다. activeRuleCount의 .size()는 응답 조립용 데이터 집계일 뿐 정책/계산 분기가 아니다. 위반 근거가 읽기로 확인되지 않음."
+          }
+        ]
+      }
+    ]
+  }
+}

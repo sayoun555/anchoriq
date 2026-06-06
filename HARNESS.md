@@ -4,7 +4,7 @@
 > AnchorIQ 코드베이스(Spring Boot 멀티모듈 + Next.js)는 산출물이고,
 > 그 산출물을 설계와 어긋나지 않게 뽑아낸 **개발 하네스(harness)** 자체를 하나의 엔지니어링 결과물로 정의한다.
 
-> **전체 문서**: [`docs/harness-engineering/`](docs/harness-engineering/) — 개념·훅 레퍼런스·적대자와 전파·트러블슈팅. 이 파일은 1페이지 요약.
+> **전체 문서**: [`docs/harness-engineering/`](docs/harness-engineering/) — 개념·훅 레퍼런스·적대자와 전파·컨텍스트 최적화·딥리서치·self-repair 가드·고도화 로드맵·트러블슈팅 + [`docs/papers/`](docs/papers/)(근거 논문 16편). 이 파일은 1페이지 요약.
 
 ## 1. 문제 정의
 
@@ -111,6 +111,7 @@ scripts/harness/
   check-stubs.sh               # Stop + CI 게이트
   finding.sh / findings.jsonl  # findings DLT (채널 C)
   verify-findings.workflow.js  # 다수결 검증단 (채널 B)
+  verify-findings-grounded.workflow.js  # 도구 쥔 검증단 (고도화 ①)
   plan-search.sh               # 설계문서 섹션/검색 (컨텍스트 최적화)
   ground-check.sh              # 외부 grounding (적대자 판단 전 컴파일/테스트)
 HARNESS.md               # 이 문서 (1페이지 요약)

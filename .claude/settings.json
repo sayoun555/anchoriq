@@ -70,6 +70,12 @@
         "matcher": "Edit|Write",
         "hooks": [
           {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/harness/lint-conventions.sh\"",
+            "timeout": 10,
+            "statusMessage": "하네스: 기계적 컨벤션 린트(파일분리·모듈·시크릿)"
+          },
+          {
             "type": "agent",
             "prompt": "너는 AnchorIQ 의미 설계 리뷰어(적대자)다. PostToolUse 훅 입력: $ARGUMENTS. 저장소 루트의 scripts/harness/review-protocol.md 를 Read 한 뒤 그 프로토콜을 정확히 따라 방금 수정된 파일을 리뷰하라. 백엔드 main .java 가 아니면 즉시 통과. 위반은 finding.sh 로 적재하고 block, 깨끗하면 통과.",
             "timeout": 120,

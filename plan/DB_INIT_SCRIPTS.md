@@ -165,6 +165,19 @@ CREATE TABLE notification_rules (
 
 CREATE INDEX idx_notification_rules_user ON notification_rules(user_id, active);
 
+-- notification_settings (유저별 채널 발송 대상 — 규칙=조건/채널, 설정=목적지)
+CREATE TABLE notification_settings (
+    id                BIGSERIAL PRIMARY KEY,
+    user_id           BIGINT       NOT NULL UNIQUE REFERENCES users(id),
+    slack_enabled     BOOLEAN      NOT NULL DEFAULT FALSE,
+    slack_webhook_url VARCHAR(500),
+    email_enabled     BOOLEAN      NOT NULL DEFAULT FALSE,
+    email_address     VARCHAR(255),
+    version           BIGINT       NOT NULL DEFAULT 0,
+    created_at        TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at        TIMESTAMP    NOT NULL DEFAULT NOW()
+);
+
 -- workflows
 CREATE TABLE workflows (
     id                  BIGSERIAL PRIMARY KEY,

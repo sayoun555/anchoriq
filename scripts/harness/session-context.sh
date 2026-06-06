@@ -44,9 +44,12 @@ read -r -d '' CTX <<EOF || true
 
 활성 하네스 가드:
   • PreToolUse(Edit|Write): 수정 파일을 지배하는 plan/ 문서를 자동 포인팅
-  • PostToolUse(Edit|Write): 의미 리뷰어가 plan/ 문서·AGENTS.md 위반 검사 → 위반 시 반려
+  • PostToolUse(Edit|Write): ① 기계 린트(파일분리·core 모듈의존·시크릿 — warn) ② 의미 리뷰어가 plan/·AGENTS.md 위반 검사 → 위반 시 반려
   • Stop: 백엔드 main 소스의 미완성 마커(stub/TODO/mock) 잔존 시 경고
     (수동/CI: scripts/harness/check-stubs.sh)
+
+소프트 리마인더(강제 안 함):
+  • AGENTS 11 — 이번 세션에 문제를 해결(트러블슈팅)했다면 docs/ 에 SCREAMING_SNAKE_CASE.md 로 기록(문제→원인→해결→CS원리).
 ${FINDINGS_BLOCK}
 설계 문서 인덱스:
 ${DOC_INDEX}

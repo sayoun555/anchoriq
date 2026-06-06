@@ -8,6 +8,7 @@ import com.anchoriq.automation.notification.SlackNotifier;
 import com.anchoriq.automation.timeline.TimelineServiceImpl;
 import com.anchoriq.core.domain.operation.notification.repository.NotificationHistoryRepository;
 import com.anchoriq.core.domain.operation.notification.repository.NotificationRuleRepository;
+import com.anchoriq.core.domain.operation.notification.repository.NotificationSettingsRepository;
 import com.anchoriq.core.domain.operation.notification.service.NotificationDomainService;
 import com.anchoriq.core.domain.operation.timeline.repository.TimelineRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,9 +48,11 @@ public class AutomationConfig {
     public NotificationDispatcherImpl notificationDispatcher(
             NotificationRuleRepository ruleRepository,
             NotificationHistoryRepository historyRepository,
+            NotificationSettingsRepository settingsRepository,
             NotificationDomainService domainService,
             List<Notifier> notifiers) {
-        return new NotificationDispatcherImpl(ruleRepository, historyRepository, domainService, notifiers);
+        return new NotificationDispatcherImpl(
+                ruleRepository, historyRepository, settingsRepository, domainService, notifiers);
     }
 
     @Bean

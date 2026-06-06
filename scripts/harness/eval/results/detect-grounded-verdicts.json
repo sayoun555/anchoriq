@@ -1,0 +1,82 @@
+{
+  "summary": "도구 쥔 검증단 — 각 렌즈가 읽기만 하지 않고 실제 도구(컴파일·검색)로 grounding 후 판정 (채널 B 고도화 ①)",
+  "agentCount": 6,
+  "logs": [
+    "2건 검증 시작 (각 3렌즈 — 도구 grounding)",
+    "판정 완료 — confirmed 1 / refuted 1 · 도구 grounding 6표"
+  ],
+  "result": {
+    "summary": {
+      "total": 2,
+      "confirmed": 1,
+      "refuted": 1,
+      "groundedVotes": 6
+    },
+    "verdicts": [
+      {
+        "id": "detect-1",
+        "file": "backend/anchoriq-api/src/main/java/com/anchoriq/api/application/_eval/_EvalLeakyService.java",
+        "desc": "_EvalLeakyService.classifyRisk()가 리스크 점수 계산 + 등급 임계값 판단(도메인 비즈니스 정책)을 @Service(Application 레이어)에 inline으로 담아, 'Application Service는 오케스트레이션만'을 위반한다(도메인 서비스로 빼야 함).",
+        "confirmed": true,
+        "refutedVotes": 0,
+        "total": 3,
+        "groundedVotes": 3,
+        "votes": [
+          {
+            "lens": "execution-grounded",
+            "refuted": false,
+            "confidence": "high",
+            "toolEvidence": "ground-check.sh 출력: \"GROUNDING: ✅ :anchoriq-api:compileJava 통과 (타입/시그니처 OK)\" — 컴파일은 통과하므로 빌드/시그니처 차원은 grounding-clean, 위반은 순수 의미론적 배치 문제로 좁혀짐. Read로 확인한 파일: classifyRisk()가 점수 누적(speedKnots>25 +40, sanctionCount>0 +50, !insideEez +20) + 등급 임계값(>=80 HIGH, >=50 MEDIUM) 판단을 @Service에 inline 보유. grep plan/AGENTS.md:135 = \"Application Service는 오케스트레이션만 (비즈니스 로직 X).\" 경로 검사: 파일이 .../api/application/_eval/ (application 레이어) 하위. 대비 증거: anchoriq-core/domain/intelligence/risk/model/RiskLevel.java의 fromScore()가 동일한 score→level 임계값 로직을 도메인 모델에 정석적으로 보유 — 이 로직의 올바른 집은 도메인임을 코드베이스 스스로 입증.",
+            "reason": "컴파일은 통과하나(빌드 차원 무관) 문제는 의미론적 배치다. 도메인 리스크 점수 산정 및 등급 임계값 정책이 application 레이어 @Service에 inline으로 들어가 AGENTS 규칙 4를 위반하며, 동일 로직의 정석 위치(RiskLevel.fromScore in domain)가 이미 존재해 도메인 서비스/모델로 빼야 함이 명확하다."
+          },
+          {
+            "lens": "spec-retrieval",
+            "refuted": false,
+            "confidence": "high",
+            "toolEvidence": "plan-search.sh section AGENTS.md \"DDD\" → \"## 8. DDD 원칙 ... Application Service는 오케스트레이션만 (비즈니스 로직 X). / Entity/VO가 비즈니스 로직을 가진다. Service가 로직을 다 가지는 빈약한 도메인 금지. / Domain Service는 여러 Aggregate에 걸치는 로직에만 사용하라.\" 레이어 규칙: \"application/ → Application Service (오케스트레이션만)\", \"domain/service/ → Domain Service\". plan-search.sh grep \"Application Service\" 도 AGENTS.md:135 동일 문구 확인. Read 대상 파일: package com.anchoriq.api.application._eval, @Service 부착, classifyRisk()가 score 계산(speedKnots>25→+40, sanctionCount>0→+50, !insideEez→+20)과 등급 임계값(>=80 HIGH, >=50 MEDIUM, else LOW)을 inline으로 보유.",
+            "reason": "파일은 application 레이어의 @Service이며 classifyRisk()가 리스크 점수 계산과 등급 임계값 판단(도메인 비즈니스 정책)을 inline으로 담는다. 위임/조정 없는 순수 비즈니스 로직으로, 인용한 AGENTS §8 \"Application Service는 오케스트레이션만(비즈니스 로직 X)\" 및 빈약한 도메인 금지 조항을 직접 위반한다. finding은 spec과 정확히 일치한다."
+          },
+          {
+            "lens": "code-reality",
+            "refuted": false,
+            "confidence": "high",
+            "toolEvidence": "Read _EvalLeakyService.java: line 11 `@Service`, package `com.anchoriq.api.application._eval` (Application layer). Method `classifyRisk()` (lines 14-22) computes a risk score inline (lines 16-18: `if (speedKnots > 25) score += 40; if (sanctionCount > 0) score += 50; if (!insideEez) score += 20;`) and applies grade thresholds (lines 19-21: `if (score >= 80) return \"HIGH\"; if (score >= 50) return \"MEDIUM\"; return \"LOW\";`). grep confirms `classifyRisk` exists only at this path (the other hit, VesselAnalyticsServiceImpl `classifyRiskScore`, is a different method in infrastructure).",
+            "reason": "인용 파일과 라인이 실재하며, @Service(Application 레이어)에 리스크 점수 가중치 계산 + 등급 임계값 판단(도메인 비즈니스 정책)이 inline으로 들어가 있어 AGENTS 규칙 4 'Application은 오케스트레이션만' 위반이 실제로 존재한다. 파일 주석 자체가 의도적 DDD 위반 픽스처임을 명시한다."
+          }
+        ]
+      },
+      {
+        "id": "detect-2",
+        "file": "backend/anchoriq-api/src/main/java/com/anchoriq/api/application/notification/NotificationApplicationServiceImpl.java",
+        "desc": "NotificationApplicationServiceImpl.updateSettings()가 도메인 비즈니스 로직(정책/계산)을 직접 담아 'Application은 오케스트레이션만'을 위반한다.",
+        "confirmed": false,
+        "refutedVotes": 3,
+        "total": 3,
+        "groundedVotes": 3,
+        "votes": [
+          {
+            "lens": "execution-grounded",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "ground-check.sh 출력: \"GROUNDING: ✅ :anchoriq-api:compileJava 통과 (타입/시그니처 OK)\" — 컴파일 통과, 타입/시그니처 차원 grounding-clean. Read로 확인한 NotificationApplicationServiceImpl.java updateSettings()(100-113행): settingsRepository.findByUserId(...).orElseGet(NotificationSettings::createDefault), settings.update(...), settingsRepository.save(...), ruleRepository.findActiveRulesByUserId(...).size(), Response.from(...). Read로 확인한 core 도메인 NotificationSettings.java: update()(67-74행)가 필드 갱신·updatedAt 정책을, createDefault()(60-62행)가 기본 상태를, destinationFor/hasDestinationFor가 목적지 정책을 모두 보유.",
+            "reason": "updateSettings()의 모든 비즈니스 로직(필드 변경, 기본값 생성, 타임스탬프 갱신, 목적지 정책)은 core 모듈 NotificationSettings 엔티티의 update()/createDefault()에 위치하고, Application Service는 repository 조회·도메인 메서드 위임·save·응답 조립만 수행한다. .size()는 응답 필드용 repository 결과 카운트일 뿐 도메인 정책/계산이 아니므로, '오케스트레이션만' 규칙 위반(정책/계산 직접 보유)이라는 주장은 도구 근거상 성립하지 않는다."
+          },
+          {
+            "lens": "spec-retrieval",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "plan-search.sh section AGENTS.md \"DDD\" → \"## 8. DDD ... Entity/VO가 비즈니스 로직을 가진다 ... Entity에 판단/계산/상태변경 로직을 넣어라. Application Service는 오케스트레이션만 (비즈니스 로직 X).\" Read of NotificationApplicationServiceImpl.java:100-113 (updateSettings) shows only: settingsRepository.findByUserId().orElseGet(NotificationSettings::createDefault), settings.update(...), settingsRepository.save, ruleRepository.findActiveRulesByUserId().size(), Response.from(). Read of core NotificationSettings.java:60-93 shows createDefault(), update() (state+updatedAt mutation), destinationFor(), hasDestinationFor() — all business logic lives in the Entity.",
+            "reason": "updateSettings()는 repository 조회/저장, Entity 팩토리(createDefault)·상태변경(update) 위임, DTO 매핑만 수행하며 정책/계산/상태변경 로직은 전부 core 도메인 Entity(NotificationSettings)에 위치한다. activeRuleCount의 .size()는 응답 DTO 조립용 단순 집계로 도메인 계산이 아니며 getSettings()와 동일 패턴이다. 따라서 '오케스트레이션만' 규칙을 준수하고 있어 위반이 실재하지 않는다."
+          },
+          {
+            "lens": "code-reality",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Read NotificationApplicationServiceImpl.java:100-113 — updateSettings() only orchestrates: settingsRepository.findByUserId(userId).orElseGet(() -> NotificationSettings.createDefault(userId)) (L103-104), then delegates mutation to settings.update(request.isSlackEnabled(), request.getSlackWebhookUrl(), request.isEmailEnabled(), request.getEmailAddress()) (L105-109), then settingsRepository.save(settings) (L110) and ruleRepository.findActiveRulesByUserId(userId).size() (L111) to build the response DTO (L112). Read NotificationSettings.java:67-93 — the actual business logic (field mutation in update(), policy in destinationFor()/hasDestinationFor(), default factory createDefault()) lives in the core domain entity. grep confirmed activeRuleCount/findActiveRulesByUserId at L94,L111.",
+            "reason": "updateSettings()는 도메인 정책/계산을 직접 담지 않는다. 모든 상태 변경 로직은 core 모듈의 NotificationSettings 엔티티(update/createDefault/destinationFor)에 위임돼 있고, Application 메서드는 find-or-create → delegate → save → DTO 조립의 오케스트레이션만 수행한다. activeRuleCount는 응답 DTO용 단순 리포지토리 카운트로 도메인 비즈니스 로직이 아니다. 따라서 규칙 4 위반 주장은 코드 근거상 거짓양성이다."
+          }
+        ]
+      }
+    ]
+  }
+}

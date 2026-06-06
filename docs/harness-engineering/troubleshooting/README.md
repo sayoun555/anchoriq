@@ -13,3 +13,4 @@
 | [PLAINTEXT_JWT_IN_SETTINGS](PLAINTEXT_JWT_IN_SETTINGS.md) | settings.local.json에 평문 JWT 누적 → 시크릿 제거 + 정책/계층 분리 |
 | [AGENT_HOOK_COST_ON_EVERY_EDIT](AGENT_HOOK_COST_ON_EVERY_EDIT.md) | PostToolUse 적대자가 매 편집마다 비쌈 → 빠른 종료·모델·입도 노브 |
 | [WORKFLOW_ARGS_PASSED_AS_STRING](WORKFLOW_ARGS_PASSED_AS_STRING.md) | 검증단 워크플로우가 args를 문자열로 받아 0초 종료 → 직렬화 경계 파싱 가드 |
+| [WORKFLOW_COMPLEX_SCHEMA_STRUCTUREDOUTPUT](WORKFLOW_COMPLEX_SCHEMA_STRUCTUREDOUTPUT.md) | subagent가 StructuredOutput 안 부르고 종료 → 출력 schema 단순화(7→3필드) + 529는 동시성 제한 |

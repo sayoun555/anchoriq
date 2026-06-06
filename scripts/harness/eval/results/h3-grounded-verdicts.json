@@ -1,0 +1,82 @@
+{
+  "summary": "도구 쥔 검증단 — 각 렌즈가 읽기만 하지 않고 실제 도구(컴파일·검색)로 grounding 후 판정 (채널 B 고도화 ①)",
+  "agentCount": 6,
+  "logs": [
+    "2건 검증 시작 (각 3렌즈 — 도구 grounding)",
+    "판정 완료 — confirmed 1 / refuted 1 · 도구 grounding 6표"
+  ],
+  "result": {
+    "summary": {
+      "total": 2,
+      "confirmed": 1,
+      "refuted": 1,
+      "groundedVotes": 6
+    },
+    "verdicts": [
+      {
+        "id": "h3-1",
+        "file": "backend/anchoriq-api/src/main/java/com/anchoriq/api/_eval/_EvalTypeBug.java",
+        "desc": "_EvalTypeBug.demo()가 NotificationSettings에 존재하지 않는 메서드 getDestination(...)을 호출해 컴파일 에러(cannot find symbol)가 난다",
+        "confirmed": true,
+        "refutedVotes": 0,
+        "total": 3,
+        "groundedVotes": 3,
+        "votes": [
+          {
+            "lens": "execution-grounded",
+            "refuted": false,
+            "confidence": "high",
+            "toolEvidence": "bash scripts/harness/ground-check.sh ..._EvalTypeBug.java → \"GROUNDING: ❌ :anchoriq-api:compileJava 실패 ... _EvalTypeBug.java:13: error: cannot find symbol\". grep on NotificationSettings.java → public methods are `destinationFor(NotificationChannel channel)` (line 80) and `hasDestinationFor` (line 90); no `getDestination` exists. The call at line 13 is `settings.getDestination(NotificationChannel.SLACK)`.",
+            "reason": "ground-check가 실제 :anchoriq-api:compileJava 실패와 13행 \"cannot find symbol\"을 출력했고, NotificationSettings의 실제 메서드는 destinationFor/hasDestinationFor뿐이라 getDestination 호출은 컴파일되지 않는다. 따라서 finding은 실재하는 위반이다."
+          },
+          {
+            "lens": "spec-retrieval",
+            "refuted": false,
+            "confidence": "high",
+            "toolEvidence": "(1) Read NotificationSettings.java: class-level Lombok @Getter over fields {id,userId,slackEnabled,slackWebhookUrl,emailEnabled,emailAddress,version,createdAt,updatedAt}; the only destination methods are hand-written `public String destinationFor(NotificationChannel)` (L80) and `hasDestinationFor` (L90). No `destination` field exists, so Lombok never generates getDestination, and Lombok getters take no args. (2) grep on NotificationSettings.java: only `destinationFor`/`hasDestinationFor` present, no `getDestination`. (3) Governing spec docs/NOTIFICATION_DESTINATION_RESOLUTION.md L28/L36/L54 mandates the contract `destinationFor(channel)`/`hasDestinationFor(channel)` (Tell-Don't-Ask), never getDestination. (4) javac reproduction of the exact call printed: `error: cannot find symbol ... method getDestination(NotificationChannel) location: variable settings of type NotificationSettings`.",
+            "reason": "_EvalTypeBug.demo() calls settings.getDestination(NotificationChannel.SLACK), but NotificationSettings defines no such method (only destinationFor/hasDestinationFor per spec, and Lombok @Getter generates no getDestination since there is no destination field). An actual javac compile reproduced the exact \"cannot find symbol: method getDestination(NotificationChannel)\" error, so the finding is a genuine compile failure."
+          },
+          {
+            "lens": "code-reality",
+            "refuted": false,
+            "confidence": "high",
+            "toolEvidence": "Read _EvalTypeBug.java:12-14 -> `public String demo(NotificationSettings settings) { return settings.getDestination(NotificationChannel.SLACK); }`. grep on NotificationSettings.java shows actual method is `destinationFor`: line 80 `public String destinationFor(NotificationChannel channel)`; no `getDestination` declared. `grep -rn getDestination` across anchoriq-core returned zero matches. NotificationSettings has `@Getter` (line 17) but no `destination` field (grep confirmed: \"NO 'destination' field declared\"), and fields are slackWebhookUrl/emailAddress, so Lombok cannot synthesize `getDestination(NotificationChannel)` (Lombok getters are zero-arg per declared field).",
+            "reason": "The call `settings.getDestination(NotificationChannel.SLACK)` targets a method that does not exist; the real method is `destinationFor(channel)`, and no `getDestination` symbol exists nor can Lombok generate one (no matching field, and getter would be zero-arg). This produces a genuine `cannot find symbol` compile error exactly as claimed."
+          }
+        ]
+      },
+      {
+        "id": "h3-2",
+        "file": "backend/anchoriq-core/src/main/java/com/anchoriq/core/domain/operation/notification/model/NotificationSettings.java",
+        "desc": "NotificationSettings.java에 타입 불일치 컴파일 에러가 존재한다",
+        "confirmed": false,
+        "refutedVotes": 3,
+        "total": 3,
+        "groundedVotes": 3,
+        "votes": [
+          {
+            "lens": "execution-grounded",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "bash scripts/harness/ground-check.sh backend/.../NotificationSettings.java → \"GROUNDING: 대상 모듈 = :anchoriq-core\" / \"GROUNDING: ✅ :anchoriq-core:compileJava 통과 (타입/시그니처 OK — 이 차원은 적대자가 다시 추측할 필요 없음)\". 또한 NotificationChannel.java 확인: enum {SLACK, EMAIL} — destinationFor의 switch는 망라적이고 두 arm 모두 String/null 반환으로 선언 반환타입 String과 일치.",
+            "reason": "결정론적 컴파일 신호(:anchoriq-core:compileJava)가 통과했으므로 타입/시그니처 차원은 grounding-clean이며, 주장된 타입 불일치 컴파일 에러는 실재하지 않는다. switch도 enum(SLACK/EMAIL)에 대해 망라적이고 반환 타입이 일치한다."
+          },
+          {
+            "lens": "spec-retrieval",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "(1) Gradle compile: `./gradlew :anchoriq-core:compileJava --rerun-tasks` → \"> Task :anchoriq-core:compileJava / BUILD SUCCESSFUL in 883ms / 1 actionable task: 1 executed\" (task actually executed, not cached; .class file produced at build/classes/.../NotificationSettings.class). (2) NotificationChannel.java is an enum with exactly two constants {SLACK, EMAIL}; both switch branches in destinationFor return String, matching the declared String return type. (3) Spec docs/NOTIFICATION_DESTINATION_RESOLUTION.md line 28 & 54: \"settings.destinationFor(channel)로 도메인이 결정. 비활성/미설정이면 null\" — confirms the implemented signature/return-null design is the intended spec.",
+            "reason": "NotificationSettings.java compiles cleanly (BUILD SUCCESSFUL on a forced, non-cached recompile). The switch over the two-constant NotificationChannel enum returns String in every branch, matching the method's String return type, so there is no type mismatch, and the design matches the governing spec. The claimed compilation error does not exist."
+          },
+          {
+            "lens": "code-reality",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Read of NotificationSettings.java (lines 1-94): switch expression at lines 80-85 returns String for both arms (SLACK->slackWebhookUrl, EMAIL->emailAddress); fields are Long/boolean/String/LocalDateTime, all assigned consistently. Read of NotificationChannel.java (lines 1-9) confirms enum has exactly SLACK, EMAIL — switch is exhaustive. Bash: `./gradlew :anchoriq-core:compileJava --rerun-tasks --offline` → EXIT=0, 'BUILD SUCCESSFUL in 1s', '1 actionable task: 1 executed', grep for 'error:/incompatible/cannot find symbol/bad operand' returned nothing.",
+            "reason": "강제 클린 재컴파일(--rerun-tasks)이 EXIT=0 BUILD SUCCESSFUL로 통과했고 타입 불일치 관련 에러 출력이 전혀 없다. 유일한 교차 타입 참조인 NotificationChannel 열거형(SLACK/EMAIL)도 실재하며 switch 표현식이 양쪽 모두 String을 반환해 망라적이고 타입 정합한다. 주장된 컴파일 에러는 존재하지 않는다(거짓양성)."
+          }
+        ]
+      }
+    ]
+  }
+}

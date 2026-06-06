@@ -1,6 +1,7 @@
 package com.anchoriq.api.application.notification;
 
 import com.anchoriq.api.dto.request.notification.NotificationRuleRequest;
+import com.anchoriq.api.dto.request.notification.NotificationSettingsRequest;
 import com.anchoriq.api.dto.request.notification.NotificationTestRequest;
 import com.anchoriq.api.dto.response.notification.NotificationHistoryResponse;
 import com.anchoriq.api.dto.response.notification.NotificationRuleResponse;
@@ -26,4 +27,6 @@ public interface NotificationApplicationService {
     boolean sendTestNotification(NotificationTestRequest request);
 
     NotificationSettingsResponse getSettings(Long userId);
+
+    NotificationSettingsResponse updateSettings(Long userId, NotificationSettingsRequest request);
 }

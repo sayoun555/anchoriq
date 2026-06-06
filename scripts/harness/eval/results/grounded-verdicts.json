@@ -1,0 +1,146 @@
+{
+  "summary": "도구 쥔 검증단 — 각 렌즈가 읽기만 하지 않고 실제 도구(컴파일·검색)로 grounding 후 판정 (채널 B 고도화 ①)",
+  "agentCount": 12,
+  "logs": [
+    "4건 검증 시작 (각 3렌즈 — 도구 grounding)",
+    "판정 완료 — confirmed 0 / refuted 4 · 도구 grounding 12표"
+  ],
+  "result": {
+    "summary": {
+      "total": 4,
+      "confirmed": 0,
+      "refuted": 4,
+      "groundedVotes": 12
+    },
+    "verdicts": [
+      {
+        "id": "eval-1",
+        "file": "backend/anchoriq-automation/src/main/java/com/anchoriq/automation/notification/NotificationDispatcherImpl.java",
+        "desc": "resolveDestination()이 여전히 rule.getConditionValue()(예: HIGH)를 destination으로 반환해 잘못된 값으로 발송한다",
+        "confirmed": false,
+        "refutedVotes": 3,
+        "total": 3,
+        "groundedVotes": 3,
+        "votes": [
+          {
+            "lens": "execution-grounded",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "(1) Read of NotificationDispatcherImpl.java lines 101-106: resolveDestination() does `settingsRepository.findByUserId(rule.getUserId()).filter(s -> s.hasDestinationFor(rule.getChannel())).map(s -> s.destinationFor(rule.getChannel())).orElse(null)` — NOT rule.getConditionValue(). (2) `grep -n \"getConditionValue\\|conditionValue\"` on the file returned exit:1 (zero matches) — the claimed string is absent. (3) `bash scripts/harness/ground-check.sh <file>` output: \"✅ :anchoriq-automation:compileJava 통과 (타입/시그니처 OK)\". (4) grep confirms NotificationSettings.java defines destinationFor (line 80) and hasDestinationFor (line 90), so the settings-based resolution is genuinely wired, not a stub.",
+            "reason": "resolveDestination()은 rule.getConditionValue()를 반환하지 않고 사용자 알림 설정에서 채널별 실제 발송 대상(Slack 웹훅/이메일)을 조회해 반환하며, 파일에 conditionValue 참조가 전혀 없고 컴파일도 통과한다. finding의 주장은 현재 코드와 불일치하는 거짓양성이다."
+          },
+          {
+            "lens": "spec-retrieval",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Read NotificationDispatcherImpl.java L101-106: resolveDestination()는 settingsRepository.findByUserId(rule.getUserId()).filter(s->s.hasDestinationFor(rule.getChannel())).map(s->s.destinationFor(rule.getChannel())).orElse(null) 반환 — rule.getConditionValue() 미사용. grep -rn \"getConditionValue\" .../notification/ → 출력 없음(해당 패키지에 존재 X). NotificationSettings.java L80-85 destinationFor(): SLACK->slackWebhookUrl, EMAIL->emailAddress 실제 발송 대상 반환. 지배 spec: plan/AGENTS.md L68-72 \"## 4. 문제 해결 & 코드 작성 원칙 - 모든 문제 해결은 정석적인 방법으로 한다. 임시방편, 꼼수, 우회 해법 금지\"(=AGENTS 규칙 10). 현 코드는 도메인 설정에서 실제 destination을 조회하는 정석 구현으로 규칙 위반 없음.",
+            "reason": "resolveDestination()은 conditionValue(예: HIGH)가 아니라 NotificationSettings.destinationFor()로 실제 Slack 웹훅 URL/이메일 주소를 반환하며, getConditionValue는 notification 패키지 어디에도 존재하지 않는다. finding은 이미 수정된/거짓 상태를 기술한 거짓양성이다."
+          },
+          {
+            "lens": "code-reality",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Read NotificationDispatcherImpl.java lines 101-106: resolveDestination() returns settingsRepository.findByUserId(rule.getUserId()).filter(s -> s.hasDestinationFor(rule.getChannel())).map(s -> s.destinationFor(rule.getChannel())).orElse(null) — no getConditionValue. grep 'getConditionValue' in backend/anchoriq-automation/src/main/java/ returned ZERO matches (no output). grep 'resolveDestination|getConditionValue|getDestination' in notification/ returned only resolveDestination at lines 81,101. Read NotificationSettings.java lines 80-85: destinationFor() returns SLACK -> slackWebhookUrl / EMAIL -> emailAddress (actual webhook/email), not a condition value like 'HIGH'.",
+            "reason": "resolveDestination()은 사용자 알림 설정에서 실제 Slack 웹훅 URL/이메일 주소를 조회해 반환하며, 미설정 시 null을 반환한다. rule.getConditionValue()(예: HIGH)는 코드 어디에서도 destination으로 사용되지 않고 모듈 전체에 해당 호출 자체가 존재하지 않는다. 따라서 주장은 거짓양성이다."
+          }
+        ]
+      },
+      {
+        "id": "eval-2",
+        "file": "backend/anchoriq-core/src/main/java/com/anchoriq/core/domain/operation/notification/model/NotificationSettings.java",
+        "desc": "NotificationSettings 엔티티가 public setter를 노출해 캡슐화를 깬다",
+        "confirmed": false,
+        "refutedVotes": 3,
+        "total": 3,
+        "groundedVotes": 3,
+        "votes": [
+          {
+            "lens": "execution-grounded",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "ground-check.sh 출력: \"GROUNDING: ✅ :anchoriq-core:compileJava 통과 (타입/시그니처 OK)\". 또한 `grep -rn \"@Setter\\|public void set\" NotificationSettings.java` → exit=1 (매치 0건). Read 결과: 클래스는 @Getter만 보유(라인 17), @Setter 없음. 상태 변경은 도메인 메서드 update(...)(라인 67)로만, 생성은 private 생성자 + static factory createDefault(라인 60)로만 가능. @NoArgsConstructor는 PROTECTED 접근(JPA용).",
+            "reason": "파일에 public setter나 @Setter가 전혀 존재하지 않는다(grep 매치 0건, @Getter만 사용). 캡슐화는 Tell-Don't-Ask 도메인 메서드(update, destinationFor)로 오히려 잘 지켜져 있어 finding의 주장은 사실과 다른 거짓양성이다."
+          },
+          {
+            "lens": "spec-retrieval",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "plan-search.sh section \"AGENTS.md\" \"OOP\" → \"## 2. OOP ... 무분별한 Getter/Setter 사용을 지양하고, 객체에 메시지를 던져라 (Tell, Don't Ask).\" | grep `public void set|set[A-Z]|@Setter|lombok.Setter` on NotificationSettings.java → EXIT:1 (no matches). Read of full file: class annotated only `@Getter` + `@NoArgsConstructor(access=AccessLevel.PROTECTED)`, no `@Setter`; mutation only via private ctor, static `createDefault`, and domain `update(...)`/`destinationFor`/`hasDestinationFor`.",
+            "reason": "파일에는 public setter도 @Setter도 존재하지 않는다(@Getter만 사용, grep 무매칭). 상태 변경은 createDefault 팩토리와 의도-드러내는 update 도메인 메서드, Tell-Don't-Ask 질의 메서드로만 이뤄지므로 AGENTS.md의 캡슐화 규칙을 오히려 정확히 준수한다. finding의 전제(public setter 노출)가 사실이 아니므로 거짓양성이다."
+          },
+          {
+            "lens": "code-reality",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Read of NotificationSettings.java (lines 1-94): class-level annotations are only @Getter and @NoArgsConstructor(access=AccessLevel.PROTECTED); no @Setter. grep -n \"public void set\\|@Setter\\|set[A-Z]\" returned no output (zero matches). grep of annotations confirms only @Getter/@NoArgsConstructor at class level (lines 17-18). State mutation is encapsulated: private constructor (line 49), static factory createDefault (line 60), and intent-revealing update() method (lines 67-74). Tell-Don't-Ask via destinationFor (line 80) / hasDestinationFor (line 90).",
+            "reason": "주장된 public setter는 파일에 존재하지 않는다. @Setter 어노테이션도 없고 set으로 시작하는 메서드도 0건이며, 상태 변경은 update()/createDefault() 같은 의도 드러내는 도메인 메서드로만 이루어져 캡슐화가 오히려 잘 지켜진 코드다."
+          }
+        ]
+      },
+      {
+        "id": "eval-3",
+        "file": "backend/anchoriq-api/src/main/java/com/anchoriq/api/application/notification/NotificationApplicationServiceImpl.java",
+        "desc": "updateSettings()가 @Transactional 안에서 외부 API(웹훅 등)를 호출한다",
+        "confirmed": false,
+        "refutedVotes": 3,
+        "total": 3,
+        "groundedVotes": 3,
+        "votes": [
+          {
+            "lens": "execution-grounded",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "ground-check.sh: \"GROUNDING: 대상 모듈 = :anchoriq-api / ✅ :anchoriq-api:compileJava 통과\". Read NotificationApplicationServiceImpl.java: updateSettings() (L100-113) calls only settings.update(...), settingsRepository.save(...), ruleRepository.findActiveRulesByUserId(...). grep notificationDispatcher → only L35 (field) and L87 (sendTest inside sendTestNotification, which has NO @Transactional, L83-89). Read NotificationSettings.update() (L67-74) = pure field setter, no I/O.",
+            "reason": "updateSettings()의 @Transactional 블록 안에는 외부 API 호출이 전혀 없다. webhook URL은 단순히 DB 컬럼 값으로 저장될 뿐이고, 유일한 외부 발송 경로인 notificationDispatcher.sendTest()는 @Transactional이 없는 sendTestNotification()에서만 호출된다. 주장은 거짓양성이다."
+          },
+          {
+            "lens": "spec-retrieval",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "grep on plan/AGENTS.md:166-167 (지배 규칙 8): \"외부 API(Stripe, Toss, OpenClaw)를 `@Transactional` 안에서 호출하지 마라 → 커넥션 풀 고갈 위험.\" / \"외부 API 호출 → 성공 후 → @Transactional로 DB 저장 → 실패 시 보상 트랜잭션.\" | Read of NotificationApplicationServiceImpl.java updateSettings() (lines 100-113): 본문은 settingsRepository.findByUserId/save, settings.update(...), ruleRepository.findActiveRulesByUserId 만 호출 — 모두 DB 리포지토리. | grep \"notificationDispatcher\" → 유일 호출은 line 87 (sendTest), 그 메서드 sendTestNotification()(line 83-89)에는 @Transactional 어노테이션 없음. | Read of NotificationSettings.java update() (lines 67-74): 필드 대입만, 외부 호출 없음. line 107의 request.getSlackWebhookUrl()은 String 인자 전달일 뿐 웹훅 호출 아님.",
+            "reason": "updateSettings()는 @Transactional 안에서 DB 리포지토리 호출과 순수 엔티티 필드 변경만 수행하며 외부 API/웹훅 호출이 전혀 없다. 유일한 외부 디스패처 호출(sendTest)은 @Transactional이 없는 sendTestNotification()에 있어 규칙 8 위반이 아니다. getSlackWebhookUrl() 문자열 인자 전달을 웹훅 호출로 오인한 거짓양성이다."
+          },
+          {
+            "lens": "code-reality",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Read of NotificationApplicationServiceImpl.java lines 100-113: updateSettings() (annotated @Transactional, line 101) only calls settingsRepository.findByUserId (103), NotificationSettings.createDefault (104), settings.update(...) (105-109), settingsRepository.save (110), ruleRepository.findActiveRulesByUserId (111), and NotificationSettingsResponse.from (112) — all DB or in-memory ops, no external call. grep for dispatcher/send patterns returned only line 87 (notificationDispatcher.sendTest) which lives in sendTestNotification(), and that method is NOT @Transactional (lines 83-89). grep on core NotificationSettings.java shows update() at line 67 is a plain in-memory setter; request.getSlackWebhookUrl() at line 107 merely persists a string field, no HTTP invocation.",
+            "reason": "updateSettings() performs no external API/webhook call inside its @Transactional scope; it only reads/writes the DB and maps a response. The Slack webhook URL is stored as a config string, and the only outbound dispatcher call (sendTest, line 87) is in a different, non-transactional method, so AGENTS rule 8 is not violated."
+          }
+        ]
+      },
+      {
+        "id": "eval-4",
+        "file": "backend/anchoriq-automation/src/main/java/com/anchoriq/automation/notification/NotificationDispatcherImpl.java",
+        "desc": "목적지 미설정/비활성 시 null 체크 없이 notifier.send를 호출해 NPE 또는 가짜 발송이 난다",
+        "confirmed": false,
+        "refutedVotes": 3,
+        "total": 3,
+        "groundedVotes": 3,
+        "votes": [
+          {
+            "lens": "execution-grounded",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "ground-check.sh 출력: \"GROUNDING: ✅ :anchoriq-automation:compileJava 통과 (타입/시그니처 OK)\". Read로 확인한 NotificationDispatcherImpl.java: sendAndRecord(74-95)에서 notifier null 체크(75-79 `if (notifier == null) ... return;`) 후, resolveDestination(rule)가 비활성·미설정 시 null 반환(101-106 `.filter(hasDestinationFor).map(destinationFor).orElse(null)`)하고, 82-86 `if (destination == null) { log.warn(...); return; }`로 발송을 건너뛴 뒤에야 88행에서 notifier.send 호출. sendTest(64-72)도 notifier null 체크 후 send.",
+            "reason": "목적지 미설정/비활성 케이스는 resolveDestination가 null을 반환하고 82행의 명시적 null 체크에서 return으로 차단되므로 notifier.send에 도달하지 않는다. notifier 자체도 75행에서 null 체크된다. NPE나 가짜 발송 경로가 코드에 존재하지 않아 finding은 거짓양성이다."
+          },
+          {
+            "lens": "spec-retrieval",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Read NotificationDispatcherImpl.java: sendAndRecord() guards `if (notifier == null) { log.error(...); return; }` (L75-79) and `String destination = resolveDestination(rule); if (destination == null) { log.warn(\"No ... destination configured ... Skipping notification.\"); return; }` (L81-86) BEFORE any `notifier.send` (L88). resolveDestination (L101-106) returns null via `.filter(hasDestinationFor).map(destinationFor).orElse(null)`. grep found NotificationSettings.java:80-93 where destinationFor returns null for disabled channels (`slackEnabled ? slackWebhookUrl : null`) and hasDestinationFor rejects null/blank. plan-search.sh section AGENTS.md \"fail-safe\" → EXIT 1 (no such section); plan-search.sh grep \"Notifier\" → only PACKAGE_STRUCTURE.md:626-628 declaring the interface, no contradicting spec.",
+            "reason": "코드는 목적지 미설정/비활성 시 null을 받아 명시적으로 null 체크 후 return하여 notifier.send를 호출하지 않으므로 NPE도 가짜 발송도 발생하지 않는다. 주장(null 체크 없이 send 호출)은 실제 코드와 정반대로 거짓양성이다."
+          },
+          {
+            "lens": "code-reality",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Read NotificationDispatcherImpl.java + grep. sendAndRecord(): line 81 `String destination = resolveDestination(rule);` then lines 82-86 `if (destination == null) { log.warn(\"No {} destination configured ... Skipping notification.\"); return; }` — explicit null check that skips before line 88 `boolean success = notifier.send(destination, subject, message);`. resolveDestination() lines 101-106 returns null via `.filter(settings -> settings.hasDestinationFor(rule.getChannel())).map(...).orElse(null)` exactly when settings missing or channel 비활성/미설정.",
+            "reason": "주장과 정반대로, 목적지가 미설정/비활성이면 resolveDestination이 null을 반환하고 82-86행의 명시적 null 체크가 발송을 건너뛴다(return). notifier.send는 destination이 non-null일 때(88행)만 호출되므로 NPE나 가짜 발송이 없다. sendTest는 destination을 파라미터로 직접 받아 설정 미설정 시나리오와 무관하다."
+          }
+        ]
+      }
+    ]
+  }
+}
