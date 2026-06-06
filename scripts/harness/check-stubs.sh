@@ -14,18 +14,27 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+CFG="$SCRIPT_DIR/harness.config.json"
+cfg() { jq -r "$1" "$CFG" 2>/dev/null; }
 
-# 스캔 대상: 백엔드 5개 모듈의 main 소스 (test 제외)
-SCAN_GLOB="$REPO_ROOT/backend"
-
-# 미완성 마커 (코멘트 앵커 기반 — 식별자 오탐 방지)
-PATTERN='(//|/\*|\*)[[:space:]]*(TODO|FIXME|XXX|HACK|stub|STUB|mock|MOCK|placeholder|simulate|임시|미구현|추후|일단)|throw new UnsupportedOperationException|throw new RuntimeException\("Not implemented'
+# 프로젝트 전용값은 harness.config.json 에서 (이식성 — DEPLOY_HARNESS.md). 없으면 AnchorIQ 기본.
+SOURCE_ROOT="$(cfg '.source.root // "backend"')"
+MAIN_GLOBS=(); while IFS= read -r _l; do [[ -n "$_l" ]] && MAIN_GLOBS+=("$_l"); done < <(cfg '.source.mainGlobs[]?')
+[[ ${#MAIN_GLOBS[@]} -eq 0 ]] && MAIN_GLOBS=("anchoriq-*/src/main/java")
+EXTS=(); while IFS= read -r _l; do [[ -n "$_l" ]] && EXTS+=("$_l"); done < <(cfg '.source.extensions[]?')
+[[ ${#EXTS[@]} -eq 0 ]] && EXTS=("java")
+PATTERN="$(cfg '.rules.stubMarkerPattern // empty')"
+[[ -z "$PATTERN" || "$PATTERN" == "null" ]] && PATTERN='(//|/\*|\*)[[:space:]]*(TODO|FIXME|XXX|HACK|stub|STUB|mock|MOCK|placeholder|simulate|임시|미구현|추후|일단)|throw new UnsupportedOperationException|throw new RuntimeException\("Not implemented'
 
 scan() {
-  # main 소스만, test 디렉토리 제외. 매치 라인을 stdout으로.
-  grep -rIn -E "$PATTERN" \
-    --include="*.java" \
-    "$SCAN_GLOB"/anchoriq-*/src/main/java/ 2>/dev/null || true
+  # config의 root+globs+extensions 로 main 소스 스캔(test 제외). 매치 라인을 stdout으로.
+  local includes=() dirs=() e g d
+  for e in "${EXTS[@]}"; do includes+=(--include="*.$e"); done
+  for g in "${MAIN_GLOBS[@]}"; do
+    for d in "$REPO_ROOT/$SOURCE_ROOT/"$g/; do [[ -d "$d" ]] && dirs+=("$d"); done
+  done
+  [[ ${#dirs[@]} -eq 0 ]] && return 0
+  grep -rIn -E "$PATTERN" "${includes[@]}" "${dirs[@]}" 2>/dev/null || true
 }
 
 MODE="${1:-ci}"
