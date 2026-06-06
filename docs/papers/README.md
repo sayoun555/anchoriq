@@ -1,6 +1,6 @@
 # 논문 모음 — self-repair 루프 가드 & 에이전트 검증
 
-> `docs/harness-engineering/SELF_REPAIR_GUARDS.md`의 근거 논문 원문(PDF).
+> `docs/harness-engineering/research/SELF_REPAIR_GUARDS.md`의 근거 논문 원문(PDF).
 > **신뢰도 최우선** 기준으로 게재지·심사 상태를 출처별로 직접 확인해 티어링했다(검색 요약이 아니라 arXiv 초록 원문 확인).
 
 ## ⚠️ 신뢰도 먼저 읽기

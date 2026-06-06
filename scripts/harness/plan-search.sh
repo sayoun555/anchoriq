@@ -16,7 +16,9 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-PLAN_DIR="$REPO_ROOT/plan"
+# 설계문서 디렉토리는 harness.config.json 에서 (이식성 — DEPLOY_HARNESS.md)
+DOCS_DIR="$(jq -r '.designDocsDir // "plan"' "$SCRIPT_DIR/harness.config.json" 2>/dev/null)"; [[ -z "$DOCS_DIR" || "$DOCS_DIR" == "null" ]] && DOCS_DIR="plan"
+PLAN_DIR="$REPO_ROOT/$DOCS_DIR"
 
 resolve_doc() {
   local d="$1"

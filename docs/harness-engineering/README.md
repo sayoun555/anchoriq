@@ -64,17 +64,22 @@ scripts/harness/           ← 하네스의 실제 코드
   verify-findings.workflow.js  다수결 검증단 (멀티에이전트 Workflow)
   verify-findings-grounded.workflow.js  도구 쥔 검증단 (①, ground-check/plan-search grounding)
 
-docs/harness-engineering/  ← 지금 보는 문서들
-  README.md                          이 문서 (마스터 가이드)
-  HOOKS_AND_SCRIPTS.md               훅·스크립트 상세 레퍼런스
-  ADVERSARY_AND_PROPAGATION.md       적대자 + 전파 3채널(A/B/C)
-  CONTEXT_OPTIMIZATION.md            긴 문서 중간소실 방지
-  RESEARCH_HARNESS_AND_MULTIAGENT.md 딥리서치(출처 21개) — 설계 근거
-  SELF_REPAIR_GUARDS.md              자율 수정 루프 가드(동료심사 근거)
-  UPGRADE_ROADMAP.md                 논문 기반 고도화 6안 + 스킬스/MCP(배선 완료)
-  ORCHESTRATION.md                   대규모 코드 작성 오케스트레이션(분해→병렬→통합)
-  troubleshooting/                   빌드 중 겪은 실제 문제 8건
-docs/papers/                         근거 논문 원문 PDF 16편 + 신뢰도 티어 README
+docs/harness-engineering/  ← 지금 보는 문서들 (세세히 분류)
+  README.md                          이 문서 (마스터 가이드 + 인덱스)
+  architecture/                      ◀ 어떻게 만들어졌나 (메커니즘)
+    HOOKS_AND_SCRIPTS.md               훅·스크립트 상세 레퍼런스
+    ADVERSARY_AND_PROPAGATION.md       적대자 + 전파 3채널(A/B/C)
+    CONTEXT_OPTIMIZATION.md            긴 문서 중간소실 방지
+    ORCHESTRATION.md                   대규모 코드 작성 오케스트레이션(분해→병렬→통합·감독자)
+  research/                          ◀ 왜 그렇게 했나 (증거 기반)
+    RESEARCH_HARNESS_AND_MULTIAGENT.md 딥리서치(출처 21개) — 설계 근거
+    COMPOSITION_PRINCIPLES.md          합성 5축 + 독립성·비대칭 법칙
+    EXTERNAL_HARNESS_COMPARISON.md     외부 하네스(revfactory) 비교·학습
+    SELF_REPAIR_GUARDS.md              자율 수정 루프 가드(동료심사 근거)
+  roadmap/                           ◀ 다음 (고도화)
+    UPGRADE_ROADMAP.md                 논문 기반 고도화 6안 + 스킬스/MCP(배선 완료)
+  troubleshooting/                   ◀ 빌드 중 겪은 실제 문제 9건 + 방법론 함정
+docs/papers/                         근거 논문 원문 PDF 16편 + 신뢰도 티어 README (PDF는 gitignore)
 
 HARNESS.md                 루트 1페이지 요약
 ```
@@ -105,7 +110,7 @@ HARNESS.md                 루트 1페이지 요약
 
 ## 4. 전파 3채널 — 적대자가 찾은 걸 어떻게 전달하나
 
-적대자는 누구에게 메일을 안 보낸다. **다른 에이전트의 컨텍스트에 자기 결과를 주입**한다. → [ADVERSARY_AND_PROPAGATION.md](ADVERSARY_AND_PROPAGATION.md)
+적대자는 누구에게 메일을 안 보낸다. **다른 에이전트의 컨텍스트에 자기 결과를 주입**한다. → [ADVERSARY_AND_PROPAGATION.md](architecture/ADVERSARY_AND_PROPAGATION.md)
 
 - **A (즉시 반려)** — 훅이 `reason`을 코더 컨텍스트에 재주입 → 그 자리에서 수정
 - **B (다수결)** — Workflow가 3렌즈 적대자로 재판정 → 거짓양성 폐기 *(멀티에이전트는 여기만)*
@@ -129,12 +134,12 @@ HARNESS.md                 루트 1페이지 요약
 ## 6. 어디서 뭘 읽나 (읽는 순서)
 
 1. **이 문서** — 전체 그림 (지금 여기)
-2. [HOOKS_AND_SCRIPTS.md](HOOKS_AND_SCRIPTS.md) — 각 부품 입출력·사용법
-3. [ADVERSARY_AND_PROPAGATION.md](ADVERSARY_AND_PROPAGATION.md) — 적대자·전파·다수결
-4. [CONTEXT_OPTIMIZATION.md](CONTEXT_OPTIMIZATION.md) — 긴 문서 중간소실 대응
-5. [RESEARCH_HARNESS_AND_MULTIAGENT.md](RESEARCH_HARNESS_AND_MULTIAGENT.md) — 왜 이렇게 설계했나(논문·기업 근거)
-6. [SELF_REPAIR_GUARDS.md](SELF_REPAIR_GUARDS.md) — 자율 수정 루프 가드(동료심사 근거) + 신뢰도 티어
-7. [UPGRADE_ROADMAP.md](UPGRADE_ROADMAP.md) — 논문 기반 하네스 고도화 6안 + 스킬스/MCP 매핑
+2. [HOOKS_AND_SCRIPTS.md](architecture/HOOKS_AND_SCRIPTS.md) — 각 부품 입출력·사용법
+3. [ADVERSARY_AND_PROPAGATION.md](architecture/ADVERSARY_AND_PROPAGATION.md) — 적대자·전파·다수결
+4. [CONTEXT_OPTIMIZATION.md](architecture/CONTEXT_OPTIMIZATION.md) — 긴 문서 중간소실 대응
+5. [RESEARCH_HARNESS_AND_MULTIAGENT.md](research/RESEARCH_HARNESS_AND_MULTIAGENT.md) — 왜 이렇게 설계했나(논문·기업 근거)
+6. [SELF_REPAIR_GUARDS.md](research/SELF_REPAIR_GUARDS.md) — 자율 수정 루프 가드(동료심사 근거) + 신뢰도 티어
+7. [UPGRADE_ROADMAP.md](roadmap/UPGRADE_ROADMAP.md) — 논문 기반 하네스 고도화 6안 + 스킬스/MCP 매핑
 8. [../papers/](../papers/README.md) — 근거 논문 원문 PDF 16편(신뢰도 A/B/C 라벨)
 9. [troubleshooting/](troubleshooting/) — 막혔을 때
 
@@ -156,4 +161,4 @@ bash scripts/harness/plan-search.sh section ARCHITECTURE.md "Domain Service"
 
 ## 한 줄 요약
 
-**Session(준비) → Pre(쓰기 직전 안내) → Post(쓴 직후 적대자+컴파일 검사) → Stop(종료 전 게이트)** 로 코딩을 감싸고, 잡힌 위반은 **A(즉시 반려)·B(다수결)·C(영속 원장)** 로 전파한다. 단일에이전트 가드레일 + 멀티에이전트 검증을 결합한, [연구로 뒷받침되는](RESEARCH_HARNESS_AND_MULTIAGENT.md) 구조다.
+**Session(준비) → Pre(쓰기 직전 안내) → Post(쓴 직후 적대자+컴파일 검사) → Stop(종료 전 게이트)** 로 코딩을 감싸고, 잡힌 위반은 **A(즉시 반려)·B(다수결)·C(영속 원장)** 로 전파한다. 단일에이전트 가드레일 + 멀티에이전트 검증을 결합한, [연구로 뒷받침되는](research/RESEARCH_HARNESS_AND_MULTIAGENT.md) 구조다.

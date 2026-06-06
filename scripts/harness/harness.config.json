@@ -1,0 +1,51 @@
+{
+  "_about": "하네스 이식성 설정. 새 프로젝트에 하네스를 배포할 때 *이 파일만* 갈아끼운다. scripts/harness/*.sh 가 이 값을 읽어 프로젝트 전용값을 주입받는다. 배포 절차: DEPLOY_HARNESS.md",
+  "_project": "AnchorIQ (Java 21 / Spring Boot / Gradle 멀티모듈 / DDD)",
+
+  "designDocsDir": "plan",
+
+  "source": {
+    "root": "backend",
+    "mainGlobs": ["anchoriq-*/src/main/java"],
+    "extensions": ["java"]
+  },
+
+  "build": {
+    "tool": "gradle",
+    "workingDir": "backend",
+    "modulePattern": "anchoriq-(core|api|collector|ai|automation)",
+    "compileCommand": "./gradlew :{module}:compileJava --console=plain -q",
+    "testCommand": "./gradlew :{module}:test --console=plain -q"
+  },
+
+  "rules": {
+    "maxFileLines": 200,
+    "maxPublicMethods": 7,
+    "coreModule": "anchoriq-core",
+    "coreForbiddenImportPattern": "^import[[:space:]]+com\\.anchoriq\\.(api|collector|ai|automation)\\.",
+    "secretPattern": "(password|passwd|secret|api[_]?key|access[_]?key|private[_]?key|client[_]?secret|token)[[:space:]]*=[[:space:]]*\"[^\"]{6,}\"",
+    "secretExcludePattern": "\\$\\{|\"\"|changeme|placeholder|example|your[_-]|xxxx|tokentype|Bearer|TODO",
+    "stubMarkerPattern": "(//|/\\*|\\*)[[:space:]]*(TODO|FIXME|XXX|HACK|stub|STUB|mock|MOCK|placeholder|simulate|임시|미구현|추후|일단)|throw new UnsupportedOperationException|throw new RuntimeException\\(\"Not implemented"
+  },
+
+  "governingDoc": {
+    "routableGlobs": ["*.java", "*.kt", "*.ts", "*.tsx", "*.yml", "*.yaml", "*.gradle", "*.gradle.kts", "*Dockerfile", "*docker-compose*"],
+    "map": [
+      { "globs": ["*infrastructure*neo4j*", "*infrastructure*ontology*", "*infrastructure*graph*"], "docs": ["plan/ARCHITECTURE.md(§온톨로지/Aggregate)", "plan/DB_OPTIMIZATION.md(Neo4j)"] },
+      { "globs": ["*infrastructure*kafka*", "*Consumer*.java", "*Producer*.java", "*consumer*", "*producer*"], "docs": ["plan/KAFKA_DESIGN.md(토픽/Consumer Group/DLT)", "plan/TRANSACTION_DESIGN.md(Tier2 최종일관성)"] },
+      { "globs": ["*infrastructure*redis*", "*redis*Geo*", "*Geo*redis*"], "docs": ["plan/DB_OPTIMIZATION.md(Redis GEO)"] },
+      { "globs": ["*infrastructure*elasticsearch*", "*infrastructure*search*"], "docs": ["plan/DB_OPTIMIZATION.md(Elasticsearch)"] },
+      { "globs": ["*repository*", "*infrastructure*persistence*"], "docs": ["plan/DB_OPTIMIZATION.md(스키마/인덱스)", "plan/PACKAGE_STRUCTURE.md(Repository 인터페이스)"] },
+      { "globs": ["*controller*", "*/api/*Controller*.java", "*/web/*"], "docs": ["plan/API_ENDPOINTS.md(엔드포인트 계약)", "plan/API_JSON_EXAMPLES.md(요청/응답 예시)"] },
+      { "globs": ["*account*payment*", "*payment*", "*subscription*", "*account*auth*", "*/security/*", "*Jwt*", "*JWT*"], "docs": ["plan/AUTH_PAYMENT.md(JWT/Stripe·Toss/플랜)", "plan/TRANSACTION_DESIGN.md(Tier1 강한일관성)"] },
+      { "globs": ["*application*Service*.java", "*/application/*"], "docs": ["plan/ARCHITECTURE.md(§Application=오케스트레이션만)", "plan/TRANSACTION_DESIGN.md(@Transactional 경계)"] },
+      { "globs": ["*domain*service*", "*DomainService*.java"], "docs": ["plan/ARCHITECTURE.md(§Domain Service)"] },
+      { "globs": ["*domain*model*", "*domain*.java"], "docs": ["plan/ARCHITECTURE.md(§Entity/VO·비즈니스 로직은 도메인에)"] },
+      { "globs": ["*application.yml", "*application-*.yml", "*application.yaml"], "docs": ["plan/APPLICATION_YML_DESIGN.md(3 프로필 + .env)"] },
+      { "globs": ["*build.gradle*", "*settings.gradle*"], "docs": ["plan/BUILD_GRADLE_DESIGN.md(멀티모듈 의존성)"] },
+      { "globs": ["*docker-compose*", "*Dockerfile*"], "docs": ["plan/DOCKER_COMPOSE_DESIGN.md(서비스/포트/프로필)"] },
+      { "globs": ["*frontend/src/*.tsx", "*frontend/src/*.ts"], "docs": ["plan/UI_DESIGN.md(팔란티어 감성 뷰)", "frontend/AGENTS.md(Next.js: node_modules/next/dist/docs 먼저 읽기)"] }
+    ],
+    "alwaysForExtension": { "java": ["plan/AGENTS.md(Clean Code/OOP/SOLID/DDD 규칙 15)"] }
+  }
+}

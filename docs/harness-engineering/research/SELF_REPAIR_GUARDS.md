@@ -1,7 +1,7 @@
 # 자율 self-repair 루프 — 가드(guardrails)
 
 > "검증자가 버그를 찾으면 자동으로 고치고 다시 검증하는 루프"를 만들 때 **무엇으로 구속해야 하는가**.
-> 근거는 동료심사 출처(Tier A) 위주. 원문 PDF·신뢰도 티어는 [`docs/papers/`](../papers/README.md).
+> 근거는 동료심사 출처(Tier A) 위주. 원문 PDF·신뢰도 티어는 [`docs/papers/`](../../papers/README.md).
 
 ## 핵심 명제
 
@@ -54,7 +54,7 @@ escalate_to_human()                        # 수렴 실패 → 사람에게
 - **Tier C(2026 단독저자 프리프린트)는 방향 참조로만** (가드 7 등).
 - 교훈: "최신=무조건 저신뢰"는 아님. **유명 랩 + 인정 벤치마크 + 학회 채택 여부**로 최신 중에서도 신뢰 가능한 걸 골라낼 수 있다.
 
-## 출처 (전문·티어는 [`docs/papers/`](../papers/README.md))
+## 출처 (전문·티어는 [`docs/papers/`](../../papers/README.md))
 
 **Tier A (동료심사)**: Huang ICLR'24 `2310.01798` · Kamoi TACL'24 `2406.01297` · Reflexion NeurIPS'23 `2303.11366` · Chen ICLR'24 `2304.05128` · Lightman ICLR'24 `2305.20050` · Zheng NeurIPS'23 `2306.05685` · Wang ICLR'23 `2203.11171` · **CRITIC ICLR'24 `2305.11738`**
 **Tier B (최신·준신뢰, 유명 랩)**: SCoRe DeepMind/ICLR'25 `2409.12917` · SWE-PRM IBM'25 `2509.02360` · Agent-as-a-Judge Meta'24 `2410.10934`

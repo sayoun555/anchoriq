@@ -1,7 +1,7 @@
 # B — 생성 품질 A/B (하네스 컨텍스트가 *코드 생성*을 개선하나)
 
 > 가설: design-first 컨텍스트 주입(Arm A)이 prompt-only(Arm B)보다 생성 품질↑ (외부 하네스 revfactory의 +60% 주장을 블라인드·통제 A/B로 검증).
-> 출처: [COMPOSITION_PRINCIPLES.md](../../../docs/harness-engineering/COMPOSITION_PRINCIPLES.md) §3 비대칭 법칙. 데이터셋: [`../dataset-genquality.json`](../dataset-genquality.json)
+> 출처: [COMPOSITION_PRINCIPLES.md](../../../../docs/harness-engineering/research/COMPOSITION_PRINCIPLES.md) §3 비대칭 법칙. 데이터셋: [`../dataset-genquality.json`](../dataset-genquality.json)
 > 과제: 선석 혼잡도 4등급 분류 순수 도메인(berth-congestion). 변수=컨텍스트 주입 하나. 블라인드 채점 2명, X/Y 순서 swap(위치편향 제어, Zheng).
 
 ## Run 1 — 2026-06-07

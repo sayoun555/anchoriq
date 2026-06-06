@@ -10,15 +10,17 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-PLAN_DIR="$REPO_ROOT/plan"
+# 설계문서 디렉토리는 harness.config.json 에서 (이식성 — DEPLOY_HARNESS.md)
+DOCS_DIR="$(jq -r '.designDocsDir // "plan"' "$SCRIPT_DIR/harness.config.json" 2>/dev/null)"; [[ -z "$DOCS_DIR" || "$DOCS_DIR" == "null" ]] && DOCS_DIR="plan"
+PLAN_DIR="$REPO_ROOT/$DOCS_DIR"
 
 BRANCH="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')"
 
-# plan/ 의 설계 문서 인덱스 (동적)
+# 설계 문서 인덱스 (동적 — designDocsDir에서)
 if [[ -d "$PLAN_DIR" ]]; then
-  DOC_INDEX="$(cd "$PLAN_DIR" && ls -1 *.md 2>/dev/null | sed 's/^/  - plan\//' )"
+  DOC_INDEX="$(cd "$PLAN_DIR" && ls -1 *.md 2>/dev/null | sed "s#^#  - ${DOCS_DIR}/#" )"
 else
-  DOC_INDEX="  (plan/ 디렉토리 없음)"
+  DOC_INDEX="  (${DOCS_DIR}/ 디렉토리 없음)"
 fi
 
 # findings DLT — 미해결 설계 위반을 다음 세션에 재주입 (전파 채널 C)
