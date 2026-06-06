@@ -1,0 +1,32 @@
+name: Harness Gate
+
+# 하네스의 품질 게이트를 git/CI 레이어까지 확장한다.
+# 로컬: 훅(Stop→check-stubs, PostToolUse→적대자). 원격: 이 워크플로우가 PR마다 강제.
+# main 으로의 PR/push 에서 ① 미완성 마커 게이트 ② 백엔드 컴파일을 통과해야 한다.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  harness-gate:
+    name: harness-gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 미완성 마커 게이트 (scripts/harness/check-stubs.sh)
+        run: bash scripts/harness/check-stubs.sh
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: 백엔드 컴파일 (ground-check)
+        working-directory: backend
+        run: ./gradlew compileJava --console=plain --no-daemon
