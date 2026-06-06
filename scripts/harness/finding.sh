@@ -57,15 +57,17 @@ case "$cmd" in
 
   list)
     scope="${1:---open}"
+    # fromjson? : 줄별 파싱, 깨진 줄은 건너뜀 (원장 한 줄이 손상돼도 나머지는 살림)
     if [[ "$scope" == "--all" ]]; then
-      jq -r '"[\(.status|ascii_upcase)] \(.severity)  \(.id)  \(.file)  — \(.desc)"' "$LEDGER" 2>/dev/null || true
+      jq -rR 'fromjson? | "[\(.status|ascii_upcase)] \(.severity)  \(.id)  \(.file)  — \(.desc)"' "$LEDGER" 2>/dev/null || true
     else
-      jq -r 'select(.status=="open") | "[\(.severity)] \(.id)  \(.file)  — \(.desc)"' "$LEDGER" 2>/dev/null || true
+      jq -rR 'fromjson? | select(.status=="open") | "[\(.severity)] \(.id)  \(.file)  — \(.desc)"' "$LEDGER" 2>/dev/null || true
     fi
     ;;
 
   count-open)
-    jq -s '[.[] | select(.status=="open")] | length' "$LEDGER" 2>/dev/null || echo 0
+    # list 와 동일한 fromjson? 전략 — 한 줄 손상으로 DLT 전체가 침묵하지 않도록(jq -s 슬럽 금지)
+    jq -rR 'fromjson? | select(.status=="open") | .id' "$LEDGER" 2>/dev/null | wc -l | tr -d ' '
     ;;
 
   *)
