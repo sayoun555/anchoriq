@@ -1,0 +1,20 @@
+[
+  {
+    "id": "detect-1",
+    "file": "backend/anchoriq-api/src/main/java/com/anchoriq/api/application/_eval/_EvalLeakyService.java",
+    "rule": "AGENTS 규칙 4 — Application은 오케스트레이션만, 비즈니스 로직 X",
+    "desc": "_EvalLeakyService.classifyRisk()가 리스크 점수 계산 + 등급 임계값 판단(도메인 비즈니스 정책)을 @Service(Application 레이어)에 inline으로 담아, 'Application Service는 오케스트레이션만'을 위반한다(도메인 서비스로 빼야 함).",
+    "groundTruth": "real",
+    "kind": "design",
+    "note": "진짜 DDD 위반(컴파일은 멀쩡). 올바른 판정=confirm. refute하면 missed-detection=refute-bias 리스크 입증."
+  },
+  {
+    "id": "detect-2",
+    "file": "backend/anchoriq-api/src/main/java/com/anchoriq/api/application/notification/NotificationApplicationServiceImpl.java",
+    "rule": "AGENTS 규칙 4 — Application은 오케스트레이션만",
+    "desc": "NotificationApplicationServiceImpl.updateSettings()가 도메인 비즈니스 로직(정책/계산)을 직접 담아 'Application은 오케스트레이션만'을 위반한다.",
+    "groundTruth": "bogus",
+    "kind": "design",
+    "note": "통제: 실제론 load-or-create→entity.update→save 오케스트레이션만. 올바른 판정=refute."
+  }
+]

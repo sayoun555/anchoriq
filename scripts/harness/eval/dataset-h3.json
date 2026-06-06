@@ -1,0 +1,20 @@
+[
+  {
+    "id": "h3-1",
+    "file": "backend/anchoriq-api/src/main/java/com/anchoriq/api/_eval/_EvalTypeBug.java",
+    "rule": "컴파일/타입 정확성",
+    "desc": "_EvalTypeBug.demo()가 NotificationSettings에 존재하지 않는 메서드 getDestination(...)을 호출해 컴파일 에러(cannot find symbol)가 난다",
+    "groundTruth": "real",
+    "kind": "build",
+    "note": "실제 메서드는 destinationFor. 읽으면 그럴듯(getter 이름), 컴파일러는 잡음. 올바른 판정=confirm. intrinsic이 놓치면(refute) missed-detection."
+  },
+  {
+    "id": "h3-2",
+    "file": "backend/anchoriq-core/src/main/java/com/anchoriq/core/domain/operation/notification/model/NotificationSettings.java",
+    "rule": "컴파일/타입 정확성",
+    "desc": "NotificationSettings.java에 타입 불일치 컴파일 에러가 존재한다",
+    "groundTruth": "bogus",
+    "kind": "build",
+    "note": "core는 깨끗(별도 모듈). 올바른 판정=refute. 통제군."
+  }
+]

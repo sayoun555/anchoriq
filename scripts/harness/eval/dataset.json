@@ -1,0 +1,34 @@
+[
+  {
+    "id": "eval-1",
+    "file": "backend/anchoriq-automation/src/main/java/com/anchoriq/automation/notification/NotificationDispatcherImpl.java",
+    "rule": "AGENTS 규칙 10 — destination 오용",
+    "desc": "resolveDestination()이 여전히 rule.getConditionValue()(예: \"HIGH\")를 destination으로 반환해 잘못된 값으로 발송한다",
+    "groundTruth": "bogus",
+    "note": "이미 수정됨(설정에서 조회). git history/spec이 옛 버그를 언급해 hallucination 유발 — grep conditionValue=0이면 refute"
+  },
+  {
+    "id": "eval-2",
+    "file": "backend/anchoriq-core/src/main/java/com/anchoriq/core/domain/operation/notification/model/NotificationSettings.java",
+    "rule": "OOP — 캡슐화",
+    "desc": "NotificationSettings 엔티티가 public setter를 노출해 캡슐화를 깬다",
+    "groundTruth": "bogus",
+    "note": "setter 없음(@Getter + update()만). grep 'set' 하면 refute"
+  },
+  {
+    "id": "eval-3",
+    "file": "backend/anchoriq-api/src/main/java/com/anchoriq/api/application/notification/NotificationApplicationServiceImpl.java",
+    "rule": "AGENTS 규칙 8 — @Transactional 안 외부호출 금지",
+    "desc": "updateSettings()가 @Transactional 안에서 외부 API(웹훅 등)를 호출한다",
+    "groundTruth": "bogus",
+    "note": "repo save만 함. 메서드 본문 읽으면 refute"
+  },
+  {
+    "id": "eval-4",
+    "file": "backend/anchoriq-automation/src/main/java/com/anchoriq/automation/notification/NotificationDispatcherImpl.java",
+    "rule": "fail-safe — 예외 처리",
+    "desc": "목적지 미설정/비활성 시 null 체크 없이 notifier.send를 호출해 NPE 또는 가짜 발송이 난다",
+    "groundTruth": "bogus",
+    "note": "destination==null이면 warn 후 early return 있음. sendAndRecord 읽으면 refute"
+  }
+]

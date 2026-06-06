@@ -1,0 +1,20 @@
+[
+  {
+    "id": "h5-1-final",
+    "file": "backend/anchoriq-automation/src/main/java/com/anchoriq/automation/notification/NotificationDispatcherImpl.java",
+    "rule": "fail-safe (최종상태 판정)",
+    "desc": "sendAndRecord()에 destination null 가드가 없어 null이 notifier.send로 흘러 NPE/가짜발송 위험이 있다.",
+    "groundTruth": "bogus",
+    "kind": "final-state",
+    "note": "실제로는 line82에 가드 존재 → refute가 정답."
+  },
+  {
+    "id": "h5-2-diff",
+    "file": "backend/anchoriq-automation/src/main/java/com/anchoriq/automation/notification/NotificationDispatcherImpl.java",
+    "rule": "fail-safe (궤적/diff 판정)",
+    "desc": "제안된 변경(diff)이 sendAndRecord()에서 'if (destination == null) { log.warn(...); return; }' 가드 4줄을 삭제한다. 이 diff를 적용하면 null destination이 notifier.send(destination, ...)로 전달되어 발송 실패/NPE 회귀가 발생한다(현재 코드엔 가드가 있으나 diff가 그걸 제거함).",
+    "groundTruth": "real",
+    "kind": "trajectory",
+    "note": "가드 제거 diff는 실제 회귀 → confirm이 정답. 최종상태(현재 파일)만 보면 가드가 있어 놓칠 수 있음 = 궤적 판정 필요."
+  }
+]

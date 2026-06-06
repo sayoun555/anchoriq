@@ -59,11 +59,13 @@
 - 데이터와 그 데이터를 조작하는 행위를 하나의 객체로 묶어라 (캡슐화).
 - 무분별한 Getter/Setter 사용을 지양하고, 객체에 메시지를 던져라 ("Tell, Don't Ask").
 - 원시 타입(Primitive type)을 포장(Wrap)하고, 일급 컬렉션을 활용하라.
+- **모던 Java 21 idiom 우선**: 불변 VO는 `record`로 표현하라(검증은 컴팩트 생성자에 — 수동 `equals/hashCode/getter` 보일러플레이트 금지). 닫힌 계층(등급·상태·결과 종류)은 `sealed interface`+record, 분기는 pattern-matching `switch`. 고전 `final class`+수동 보일러플레이트는 *record로 표현 불가한 진짜 행위·엄격 캡슐화가 필요할 때만*. → "VO 포장"은 장황한 클래스가 아니라 *간결한 record*가 기본이다.
 
 ## 3. Object-Oriented Design (객체지향 설계와 SOLID)
 - 단일 책임 원칙(SRP): 클래스가 변경되어야 하는 이유는 단 하나여야 한다.
 - 개방-폐쇄 원칙(OCP): 확장에는 열려 있고, 수정에는 닫혀 있도록 인터페이스와 다형성을 적극 활용하라.
 - 의존성 역전 원칙(DIP): 구체화된 클래스가 아닌 추상화(인터페이스)에 의존하여 Spring의 DI(Dependency Injection) 이점을 극대화하라.
+- **적정 설계(YAGNI) — 과설계 금지**: 인터페이스·추상화 계층·정책 주입은 *실제 다형성/교체/외부경계 요구가 있을 때만* 도입하라. **단일 구현·고정 순수 함수에 인터페이스를 다는 건 OCP가 아니라 speculative generality(과설계)다.** 추상화는 *지금* 필요한 만큼만 — 요구가 생기면 그때 확장한다. (측정 근거: `scripts/harness/eval/results/GENQUALITY.md` — 단순 과제에 design-first를 무차별 적용하면 과설계로 *품질이 낮아진다*. OCP·인터페이스 우선은 강제가 아니라 *근거 있을 때*의 도구.)
 
 ## 4. 문제 해결 & 코드 작성 원칙
 - 모든 문제 해결은 **정석적인 방법**으로 한다. 임시방편, 꼼수, 우회 해법 금지.

@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "experiment": "v-next — runtime/environment boundary",
+    "source": "capstone open question (11 experiments): accuracy signal only where the model CANNOT reason it out = environment/runtime DB state",
+    "design": "Two near-identical findings on the SAME real code (NotificationDispatcherImpl.sendAndRecord/resolveDestination). They differ ONLY by user_id (42 vs 7). The verdict flips solely on a DB row that is NOT derivable from code. Grounded panel may query the DB; intrinsic panel sees code only.",
+    "ground_truth_source": "/tmp/anchoriq-vnext/runtime.db (binary, seeded; user 42 has NO SLACK destination row, user 7 HAS one)",
+    "prediction": "Grounded gets 2/2 (queries DB). Intrinsic cannot exceed chance — the two findings are indistinguishable in code; it must guess. If so, this is the FIRST verdict-accuracy signal across all experiments."
+  },
+  "findings": [
+    {
+      "id": "vnext-1",
+      "label": "confirm",
+      "gt_reason": "user 42 has NO notification_settings SLACK row -> resolveDestination returns null -> sendAndRecord logs warn and returns (SKIP). The claim is TRUE.",
+      "claim": "In NotificationDispatcherImpl.sendAndRecord, when a matching active rule fires for notification_rule id=101 (user_id=42, channel=SLACK), the dispatcher will NOT call notifier.send and will NOT persist any NotificationHistory row. It hits the `destination == null` branch (lines 82-86), logs a warn 'No SLACK destination configured for user 42', and returns early. No Slack message is delivered."
+    },
+    {
+      "id": "vnext-2",
+      "label": "refute",
+      "gt_reason": "user 7 HAS a notification_settings SLACK destination -> resolveDestination returns the webhook -> notifier.send is called and a NotificationHistory row is saved. The claim (that it skips) is FALSE.",
+      "claim": "In NotificationDispatcherImpl.sendAndRecord, when a matching active rule fires for notification_rule id=102 (user_id=7, channel=SLACK), the dispatcher will NOT call notifier.send and will NOT persist any NotificationHistory row. It hits the `destination == null` branch (lines 82-86), logs a warn 'No SLACK destination configured for user 7', and returns early. No Slack message is delivered."
+    }
+  ]
+}

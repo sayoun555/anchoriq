@@ -1,0 +1,34 @@
+{
+  "summary": "intrinsic 검증단 — 도구(컴파일/테스트) 실행 금지, 읽고 추론만으로 판정 (H3 대조군: Huang ICLR24 intrinsic self-correction)",
+  "agentCount": 1,
+  "logs": [
+    "1건 검증 시작 (intrinsic — 실행 금지, 추론만)",
+    "판정 완료 — confirmed 0 / refuted 1"
+  ],
+  "result": {
+    "summary": {
+      "total": 1,
+      "confirmed": 0,
+      "refuted": 1
+    },
+    "verdicts": [
+      {
+        "id": "v3-1",
+        "file": "scripts/harness/eval/fixtures/compute.jsh",
+        "desc": "compute(20)이 정답 49가 아닌 다른 값을 반환하는 계산 버그가 있다(읽고 추론으로 판단; 실행 금지).",
+        "confirmed": false,
+        "refutedVotes": 1,
+        "total": 1,
+        "groundedVotes": 0,
+        "votes": [
+          {
+            "lens": "intrinsic",
+            "refuted": true,
+            "confidence": "high",
+            "reason": "Hand-traced the loop i=1..20: divisible-by-3 terms (i*2) sum to 126, divisible-by-5-not-3 terms sum to 35, subtracted others sum to 112; 126+35-112 = 49. Step-by-step accumulation also lands on 49, matching the stated correct answer, so no runtime calculation bug exists."
+          }
+        ]
+      }
+    ]
+  }
+}

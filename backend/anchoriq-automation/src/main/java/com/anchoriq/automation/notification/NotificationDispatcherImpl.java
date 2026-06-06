@@ -5,6 +5,7 @@ import com.anchoriq.core.domain.operation.notification.model.NotificationHistory
 import com.anchoriq.core.domain.operation.notification.model.NotificationRule;
 import com.anchoriq.core.domain.operation.notification.repository.NotificationHistoryRepository;
 import com.anchoriq.core.domain.operation.notification.repository.NotificationRuleRepository;
+import com.anchoriq.core.domain.operation.notification.repository.NotificationSettingsRepository;
 import com.anchoriq.core.domain.operation.notification.service.NotificationDomainService;
 import com.anchoriq.core.event.RiskAlertEvent;
 import lombok.extern.slf4j.Slf4j;
@@ -23,15 +24,18 @@ public class NotificationDispatcherImpl implements NotificationDispatcher {
 
     private final NotificationRuleRepository ruleRepository;
     private final NotificationHistoryRepository historyRepository;
+    private final NotificationSettingsRepository settingsRepository;
     private final NotificationDomainService domainService;
     private final Map<NotificationChannel, Notifier> notifierMap;
 
     public NotificationDispatcherImpl(NotificationRuleRepository ruleRepository,
                                       NotificationHistoryRepository historyRepository,
+                                      NotificationSettingsRepository settingsRepository,
                                       NotificationDomainService domainService,
                                       List<Notifier> notifiers) {
         this.ruleRepository = ruleRepository;
         this.historyRepository = historyRepository;
+        this.settingsRepository = settingsRepository;
         this.domainService = domainService;
         this.notifierMap = notifiers.stream()
                 .collect(Collectors.toMap(Notifier::supportedChannel, Function.identity()));
@@ -74,10 +78,12 @@ public class NotificationDispatcherImpl implements NotificationDispatcher {
             return;
         }
 
-        // destination은 규칙에 연결된 대상 (conditionValue에 저장되지 않고 별도 필드가 필요할 수 있지만,
-        // 현재 DB 스키마에서는 conditionValue가 condition, 채널 destination은 별도 관리가 필요.
-        // 임시로 conditionValue를 destination으로 사용하지 않고, 기본 destination 사용)
         String destination = resolveDestination(rule);
+        if (destination == null) {
+            log.warn("No {} destination configured for user {} (rule {}). Skipping notification.",
+                    rule.getChannel(), rule.getUserId(), rule.getId());
+            return;
+        }
 
         boolean success = notifier.send(destination, subject, message);
 
@@ -88,11 +94,15 @@ public class NotificationDispatcherImpl implements NotificationDispatcher {
         historyRepository.save(history);
     }
 
+    /**
+     * 규칙 소유자의 알림 설정에서 채널별 실제 발송 대상(Slack 웹훅 URL / 이메일 주소)을 조회한다.
+     * 설정이 없거나 해당 채널이 비활성·미설정이면 null을 반환해 발송을 생략한다.
+     */
     private String resolveDestination(NotificationRule rule) {
-        // conditionValue에 destination 정보를 포함시키는 방식
-        // 예: "RISK_LEVEL:HIGH:https://hooks.slack.com/..." 또는 별도 destination 컬럼
-        // 현재는 conditionValue를 destination으로 사용
-        return rule.getConditionValue();
+        return settingsRepository.findByUserId(rule.getUserId())
+                .filter(settings -> settings.hasDestinationFor(rule.getChannel()))
+                .map(settings -> settings.destinationFor(rule.getChannel()))
+                .orElse(null);
     }
 
     private String buildSubject(RiskAlertEvent event) {

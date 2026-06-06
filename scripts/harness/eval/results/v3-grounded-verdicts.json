@@ -1,0 +1,50 @@
+{
+  "summary": "도구 쥔 검증단 — 각 렌즈가 읽기만 하지 않고 실제 도구(컴파일·검색)로 grounding 후 판정 (채널 B 고도화 ①)",
+  "agentCount": 3,
+  "logs": [
+    "1건 검증 시작 (각 3렌즈 — 도구 grounding)",
+    "판정 완료 — confirmed 0 / refuted 1 · 도구 grounding 3표"
+  ],
+  "result": {
+    "summary": {
+      "total": 1,
+      "confirmed": 0,
+      "refuted": 1,
+      "groundedVotes": 3
+    },
+    "verdicts": [
+      {
+        "id": "v3-1",
+        "file": "scripts/harness/eval/fixtures/compute.jsh",
+        "desc": "compute(20)이 정답 49가 아닌 다른 값을 반환하는 계산 버그가 있다. 이 주장은 실행 결과에 관한 것이므로 jshell scripts/harness/eval/fixtures/compute.jsh 를 실제로 실행해 출력으로 검증하라.",
+        "confirmed": false,
+        "refutedVotes": 3,
+        "total": 3,
+        "groundedVotes": 3,
+        "votes": [
+          {
+            "lens": "execution-grounded",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "1) `bash scripts/harness/ground-check.sh scripts/harness/eval/fixtures/compute.jsh` → \"GROUNDING: (백엔드 Gradle 모듈 아님 — grounding 생략)\" (exit 0), so no compile/type/signature error — grounding-clean. 2) `jshell scripts/harness/eval/fixtures/compute.jsh` → output \"compute(20)=49\" (exit 0). 3) Independent Python reimplementation of the identical loop logic → \"computed= 49\", matching the jshell result.",
+            "reason": "실제 jshell 실행 출력이 compute(20)=49 로, finding이 말하는 정답 49와 정확히 일치한다. 독립 재구현(Python)도 49를 산출해 계산 버그가 없음을 확인했으므로 '49가 아닌 다른 값을 반환한다'는 주장은 거짓양성이다."
+          },
+          {
+            "lens": "spec-retrieval",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Ran `jshell /Users/sanghyunyoun/anchoriq/scripts/harness/eval/fixtures/compute.jsh` → stdout: `compute(20)=49`. The fixture (read at lines 3-12) loops i=1..20 with %3→r+=i*2, else %5→r+=i, else r-=i. Manual trace also lands on 49 (matching i=15 hits the %3 branch first). My lens specified spec-retrieval, but the governing \"spec\" here is the fixture's own header comment (lines 1-2): \"실행(jshell)으로는 확정\" — i.e. jshell output is the authority, which says 49.",
+            "reason": "실제 jshell 실행 출력이 정확히 compute(20)=49로, finding의 \"정답 49가 아닌 다른 값을 반환한다\"는 주장과 정면으로 배치된다. 수동 트레이스도 49로 일치하므로 계산 버그는 존재하지 않는 거짓양성이다."
+          },
+          {
+            "lens": "code-reality",
+            "refuted": true,
+            "confidence": "high",
+            "toolEvidence": "Read scripts/harness/eval/fixtures/compute.jsh (lines 3-12): compute(int n) loop with `if(i%3==0) r+=i*2; else if(i%5==0) r+=i; else r-=i;` and `System.out.println(\"compute(20)=\" + compute(20));`. Bash `jshell scripts/harness/eval/fixtures/compute.jsh` printed `compute(20)=49`. Independent awk re-trace of the same logic also printed `manual compute(20)=49`. java -version = OpenJDK 21.0.8, jshell at /usr/bin/jshell.",
+            "reason": "실제 jshell 실행 출력이 compute(20)=49로, finding이 정답이라고 명시한 값과 정확히 일치한다. 독립 수동 트레이스(awk)도 49를 확인했으므로 \"49가 아닌 다른 값을 반환하는 계산 버그\"라는 주장은 거짓양성이다."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "summary": "intrinsic 검증단 — 도구(컴파일/테스트) 실행 금지, 읽고 추론만으로 판정 (H3 대조군: Huang ICLR24 intrinsic self-correction)",
+  "agentCount": 2,
+  "logs": [
+    "2건 검증 시작 (intrinsic — 실행 금지, 추론만)",
+    "판정 완료 — confirmed 1 / refuted 1"
+  ],
+  "result": {
+    "summary": {
+      "total": 2,
+      "confirmed": 1,
+      "refuted": 1
+    },
+    "verdicts": [
+      {
+        "id": "h3-1",
+        "file": "backend/anchoriq-api/src/main/java/com/anchoriq/api/_eval/_EvalTypeBug.java",
+        "desc": "_EvalTypeBug.demo()가 NotificationSettings에 존재하지 않는 메서드 getDestination(...)을 호출해 컴파일 에러(cannot find symbol)가 난다",
+        "confirmed": true,
+        "refutedVotes": 0,
+        "total": 1,
+        "groundedVotes": 0,
+        "votes": [
+          {
+            "lens": "intrinsic",
+            "refuted": false,
+            "confidence": "high",
+            "reason": "_EvalTypeBug.java line 13 calls settings.getDestination(NotificationChannel.SLACK), but NotificationSettings (annotated only with Lombok @Getter, no 'destination' field) has no getDestination method — only destinationFor(channel) and hasDestinationFor(channel). Lombok @Getter generates zero-arg getters, never a parameterized getDestination. The import and the SLACK enum constant are both valid, so the only issue is the missing method, yielding a genuine 'cannot find symbol' compile error."
+          }
+        ]
+      },
+      {
+        "id": "h3-2",
+        "file": "backend/anchoriq-core/src/main/java/com/anchoriq/core/domain/operation/notification/model/NotificationSettings.java",
+        "desc": "NotificationSettings.java에 타입 불일치 컴파일 에러가 존재한다",
+        "confirmed": false,
+        "refutedVotes": 1,
+        "total": 1,
+        "groundedVotes": 0,
+        "votes": [
+          {
+            "lens": "intrinsic",
+            "refuted": true,
+            "confidence": "high",
+            "reason": "NotificationSettings.java의 모든 필드/대입/메서드 반환 타입이 일치한다. destinationFor의 switch는 NotificationChannel(SLACK, EMAIL) 2개 상수를 모두 커버하여 exhaustive하고 각 arm은 String을 반환하며, hasDestinationFor도 String→boolean 처리가 정상이다. 타입 불일치 컴파일 에러는 없다."
+          }
+        ]
+      }
+    ]
+  }
+}

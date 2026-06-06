@@ -1,0 +1,32 @@
+{
+  "_meta": {
+    "experiment": "B — 생성 품질 A/B (하네스 컨텍스트 주입이 *코드 생성*을 개선하나)",
+    "source": "COMPOSITION_PRINCIPLES.md §3 비대칭 법칙 — 합성 수익은 검증자보다 생성자 측에서 크다. 12실험은 전부 검증 측만 측정 → 생성 측은 사각지대.",
+    "hypothesis": "design-first 컨텍스트(DDD·인터페이스·VO·캡슐화 규칙 + 지배 spec) 주입(Arm A)이 prompt-only(Arm B)보다 생성 코드 품질을 높인다. 외부 하네스(revfactory)의 +60% 주장을, 우리 방식의 *블라인드·통제* A/B로 검증.",
+    "method": "같은 과제·같은 모델. 변수는 컨텍스트 주입 하나. 두 생성물을 블라인드 채점(채점자는 어느 쪽이 하네스인지 모름, X/Y 무작위 배정). 채점은 *객관적 코드 품질* 6차원(스타일 취향 아님).",
+    "reliability_caveats": "n=과제 1~2개(소표본 — 방향성만), 채점자 LLM(사람 아님), 단 블라인드+X/Y swap으로 위치편향 완화. revfactory와 달리 채점 프로세스·차원을 공개."
+  },
+  "task": {
+    "id": "berth-congestion",
+    "prompt": "선박 입항 혼잡도(berth congestion) 등급 계산 도메인 기능. 입력: 항구의 현재 정박 선박 수(occupied, int)와 총 선석 수(totalBerths, int). 점유율 = occupied/totalBerths 를 구해 FREE(<0.5) / MODERATE(<0.8) / CONGESTED(<1.0) / FULL(>=1.0) 4등급으로 분류하고, 사람이 읽을 사유 설명 문자열을 생성한다. 순수 도메인 로직(외부 DB/네트워크/프레임워크 의존 없음). Java 21.",
+    "note": "design-first 컨텍스트가 있으면 VO(점유율)·임계값 정책(일급 컬렉션)·enum 등급·인터페이스+구현 분리로 가고, prompt-only면 단일 클래스+원시타입으로 가기 쉬운 과제 — 합성 효과가 드러나는 설계."
+  },
+  "armA_context": [
+    "이 코드는 Java 21 / Spring Boot DDD 코드베이스의 순수 도메인 모듈(외부 모듈·프레임워크 의존 금지)에 들어간다. 아래 설계 규칙을 따르라:",
+    "- DDD 풍부한 도메인: 비즈니스 로직(계산·정책 판단)은 도메인 Entity/VO/DomainService에. 서비스를 절차적 함수 덩어리로 만들지 마라.",
+    "- 인터페이스 우선: 도메인 Service는 인터페이스 먼저 정의하고 구현체 분리.",
+    "- 캡슐화: 원시타입 강박 금지 — 값은 VO로 포장(점유율을 raw double로 흘리지 마라), 임계값 묶음은 일급 컬렉션으로. Tell-Don't-Ask, setter 금지.",
+    "- 단일 책임: 한 클래스가 한 책임. 등급 결정 로직을 컨트롤러/서비스가 아니라 정책 VO에 캡슐화."
+  ],
+  "rubric": {
+    "dimensions": [
+      "correctness (임계값·점유율 로직이 맞고 컴파일될 코드인가, 0-10)",
+      "spec_conformance (4등급·사유설명·순수도메인 요구를 다 충족, 0-10)",
+      "domain_modeling (풍부한 도메인 vs 절차적; 책임 배치, 0-10)",
+      "abstraction (적절한 인터페이스 — 과/소 설계 아님, 0-10)",
+      "encapsulation (VO vs 원시타입 강박; 내부 누수 없음, 0-10)",
+      "completeness (stub/TODO 없이 완성, 0-10)"
+    ],
+    "total": 60
+  }
+}
