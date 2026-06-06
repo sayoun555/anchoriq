@@ -37,7 +37,8 @@ out/
 # Java
 *.class
 *.jar
-!backend/gradle/wrapper/gradle-wrapper.jar  # Gradle wrapper는 커밋해야 CI의 ./gradlew가 작동
+# Gradle wrapper는 커밋해야 CI의 ./gradlew가 작동 (gitignore는 인라인 주석 불가 — 별도 줄)
+!backend/gradle/wrapper/gradle-wrapper.jar
 *.war
 *.ear
 hs_err_pid*
