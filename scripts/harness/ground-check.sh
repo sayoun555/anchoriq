@@ -39,7 +39,10 @@ fi
 
 cd "$REPO_ROOT/$BUILD_DIR" || { echo "GROUNDING: ($BUILD_DIR 디렉토리 없음)"; exit 0; }
 
-# {module} 치환 후 실행 (빌드 도구 무관 — config 명령 템플릿)
+# {module} 치환 후 실행 (빌드 도구 무관 — config 명령 템플릿).
+# ⚠️ 명령은 *커밋된* harness.config.json 에서 온다(신뢰 경계 = config 편집·커밋권). {module}은
+#    modulePattern grep으로 제약돼 주입 불가, 외부 입력엔 노출 안 됨. config를 커밋할 수 있으면
+#    이미 임의실행 가능하므로 eval은 그 신뢰모델 안에서 허용한다 (A8 — accept-risk).
 run_tmpl() { ( eval "${1//\{module\}/$MODULE}" ) 2>&1; }
 
 echo "GROUNDING: 대상 모듈 = :$MODULE"

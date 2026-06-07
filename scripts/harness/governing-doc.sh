@@ -27,18 +27,29 @@ done < <(jq -r '.governingDoc.routableGlobs[]?' "$CFG" 2>/dev/null)
 docs=()
 
 # 2) docMap — 첫 매치 엔트리의 docs (bash case의 first-match-wins 재현)
-MATCHED=0
-N="$(jq '.governingDoc.map | length' "$CFG" 2>/dev/null)"; [[ "$N" =~ ^[0-9]+$ ]] || N=0
-i=0
-while (( i < N )) && (( MATCHED == 0 )); do
-  while IFS= read -r g; do
-    [[ -n "$g" && "$FILE" == $g ]] && { MATCHED=1; break; }
-  done < <(jq -r ".governingDoc.map[$i].globs[]?" "$CFG" 2>/dev/null)
-  if (( MATCHED == 1 )); then
-    while IFS= read -r d; do [[ -n "$d" ]] && docs+=("$d"); done < <(jq -r ".governingDoc.map[$i].docs[]?" "$CFG" 2>/dev/null)
-  fi
-  i=$((i + 1))
-done
+#    map 전체를 *단일 jq*로 스트리밍해 엔트리당 jq 2회(최대 20회)를 1회로 줄임 (A7).
+MATCHED=0; cur_globs=(); cur_docs=()
+check_entry() {  # 누적된 한 엔트리를 FILE에 매치 — 첫 매치만 docs에 반영
+  (( MATCHED == 1 )) && return 0
+  (( ${#cur_globs[@]} == 0 )) && return 0
+  local g
+  for g in "${cur_globs[@]}"; do
+    if [[ "$FILE" == $g ]]; then
+      MATCHED=1
+      (( ${#cur_docs[@]} > 0 )) && docs+=("${cur_docs[@]}")
+      return 0
+    fi
+  done
+  return 0
+}
+while IFS= read -r line; do
+  case "$line" in
+    "@@ENTRY@@") check_entry; cur_globs=(); cur_docs=() ;;
+    G$'\t'*) cur_globs+=("${line#G$'\t'}") ;;
+    D$'\t'*) cur_docs+=("${line#D$'\t'}") ;;
+  esac
+done < <(jq -r '.governingDoc.map[] | "@@ENTRY@@", (.globs[] | "G\t" + .), (.docs[] | "D\t" + .)' "$CFG" 2>/dev/null)
+check_entry  # 마지막 엔트리
 
 # 3) 확장자별 always 문서 (예: .java → AGENTS.md 는 항상)
 EXT="${FILE##*.}"
