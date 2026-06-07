@@ -18,7 +18,7 @@ CFG="$SCRIPT_DIR/harness.config.json"
 cfg() { jq -r "$1" "$CFG" 2>/dev/null; }
 
 # 프로젝트 전용값은 harness.config.json 에서 (이식성 — DEPLOY_HARNESS.md). 없으면 AnchorIQ 기본.
-SOURCE_ROOT="$(cfg '.source.root // "backend"')"
+SOURCE_ROOT="$(cfg '.source.root // "backend"')"; [[ -z "$SOURCE_ROOT" || "$SOURCE_ROOT" == "null" ]] && SOURCE_ROOT="backend"  # config 깨져도 fail-open 안 되게(jq 파싱에러 시 //기본값이 안 먹음)
 MAIN_GLOBS=(); while IFS= read -r _l; do [[ -n "$_l" ]] && MAIN_GLOBS+=("$_l"); done < <(cfg '.source.mainGlobs[]?')
 [[ ${#MAIN_GLOBS[@]} -eq 0 ]] && MAIN_GLOBS=("anchoriq-*/src/main/java")
 EXTS=(); while IFS= read -r _l; do [[ -n "$_l" ]] && EXTS+=("$_l"); done < <(cfg '.source.extensions[]?')
