@@ -24,13 +24,15 @@ check-stubs.sh (grep)   →  "// 임시" 라는 글자       →  구문(syntact
    ├─(A) 세션 내 재주입 ── 훅 stdout JSON → 코더 컨텍스트에 system-reminder로 박힘
    │     • PostToolUse/Stop 훅이 {"decision":"block","reason":"<위반>"} 반환
    │       → 코더가 reason을 받고 다시 깨어나 고친다
-   │     • asyncRewake:true → 적대자가 백그라운드로 길게 리뷰하다 발견 시(exit 2) 코더를 깨움
+   │     • (asyncRewake:true → 백그라운드 리뷰 후 깨움 — *개념*, 이 리포 settings.json엔 미설정)
    │     • type:"agent" 훅 → 적대자를 라이프사이클에 내장 (기본 Haiku, model로 Sonnet 지정 가능)
+   │       단 'block'은 LLM 판단 기반 best-effort이지 결정론적 차단이 아니다
    │
    ├─(B) 에이전트 간 ── 구조화된 return value(schema)를 오케스트레이터가 수집
    │     • find → verify(N명 refute) → 다수결 → confirmed → synthesize
    │     • 전파 = "반환값이 호출 트리를 타고 올라가 부모가 dedup/투표"
-   │     • (워크플로우 패턴. 이 리포에는 아직 미구현 — 설계만.)
+   │     • 이 리포에 *구현됨*(verify-findings*.workflow.js) — 단 훅이 자동 트리거하지 않고
+   │       **사람이 수동 호출**: finding.sh list → 워크플로우 실행 → resolve
    │
    └─(C) 영속/세션 간 ── findings를 원장 파일 + 메모리에 적재
          • finding.sh add → findings.jsonl (DLT)
@@ -42,11 +44,13 @@ check-stubs.sh (grep)   →  "// 임시" 라는 글자       →  구문(syntact
 
 ## 이 리포의 구현
 
-| 채널 | 구현 | 상태 |
+| 채널 | 구현 | 상태 (정직하게) |
 |------|------|------|
-| A | PostToolUse `type:"agent"` 의미 리뷰어 → `ok=false`/`reason` | ✅ |
-| B | 다수결 검증단 Workflow → 반환값을 메인 루프가 DLT에 반영 | ✅ |
-| C | `finding.sh` → `findings.jsonl` → SessionStart 재주입 | ✅ |
+| A | PostToolUse `type:"agent"` 의미 리뷰어 → `reason`/finding 적재 | ✅ 작동 — 단 **LLM 판단 기반**(결정론 block 보장 아님) |
+| B | 다수결 검증단 Workflow → 반환값을 메인 루프가 DLT에 반영 | ✅ 구현·1회 실측 — 단 **수동 호출**(훅이 자동 트리거 X) |
+| C | `finding.sh` → `findings.jsonl` → SessionStart 재주입 | ✅ 작동 (원장 손상줄도 fromjson?로 견딤) |
+
+> 정직한 주의: B는 "활성 채널"처럼 보이지만 *자동화된 파이프라인이 아니라 수동 절차*다. A의 "block"도 의미 리뷰어가 *판단*해야 발생하는 확률적 반려이지, check-stubs/컴파일 같은 결정론적 차단이 아니다.
 
 ### 채널 A — 의미 리뷰어 (PostToolUse agent)
 
@@ -107,6 +111,6 @@ verify-findings.workflow.js
 
 ## 설계 결정
 
-- **A→C 자동 연결**: 의미 리뷰어(agent 훅)는 도구를 쓸 수 있어 `finding.sh`를 직접 호출해 적재한다. 단, 에이전트 훅의 Bash 가용성에 의존하는 best-effort 연결이다 — block(A)은 항상 보장되지만, DLT 적재(C)가 누락되면 코더가 수동으로 `finding.sh add` 한다.
+- **A→C 연결(best-effort)**: 의미 리뷰어(agent 훅)는 도구를 쓸 수 있어 `finding.sh`를 직접 호출해 적재한다. 단 이 전체 경로가 **LLM 판단 + Bash 가용성에 의존하는 best-effort**다 — 리뷰어가 위반을 *판단*해야 block이 나오고(결정론 보장 아님), DLT 적재(C)가 누락되면 코더가 수동으로 `finding.sh add` 한다. (결정론적 게이트는 check-stubs·컴파일 쪽이고, 이 의미 채널은 확률적이다.)
 - **적대자 ≠ 나그(nag)**: 기본값을 "통과"로 둔 건 의도다. 막는 비용이 통과시키는 비용보다 클 때만 막는다.
 - **DLT는 메커니즘만 추적, 데이터는 무시**: `findings.jsonl`은 gitignore. 원장 CLI·SessionStart 배선(메커니즘)은 버전관리.

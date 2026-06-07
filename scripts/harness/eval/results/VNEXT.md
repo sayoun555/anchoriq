@@ -36,6 +36,13 @@
 3. **쌍둥이 통제가 우연을 배제**: intrinsic 50%는 실력이 아니라 **refute-bias × (confirm 1: refute 1) 구성의 산물**. 만약 둘 다 confirm 케이스였다면 intrinsic은 0/2였을 것 — 즉 intrinsic 정확도는 진실과 **무상관**(definitionally chance), grounded는 진실과 **상관**.
 4. **부수(긍정적): intrinsic의 정직성.** intrinsic은 환각하지 않고 *"코드만으론 결정 불가, 추측"*이라 명시했고, 한 명은 주입된 Vercel 힌트까지 거부. → **자기가 못 푸는 걸 안다.** 단 *정직 ≠ 정확* — 강제 verdict에선 prior(refute-bias)가 우연만 냄. 실무 함의: 이런 finding엔 패널에게 **"모름"을 verdict로 허용**하고 grounding 도구를 줘야 한다.
 
+## ⚠️ 자기비판 (적대적 자기검증 반영)
+
+- **설계상 동어반복 위험**: 정답을 가르는 DB 정보를 intrinsic에서만 제거했으니, intrinsic이 못 맞히는 건 *발견*이라기보다 *정의상 보장*된 결과다("definitionally chance"라 본문도 인정). 즉 v-next는 "외부상태 의존 질문엔 외부상태 접근이 필요하다"를 *실증*했다기보다 *가정을 코드로 재서술*한 면이 크다.
+- **n=2(쌍둥이 1쌍)**: 이걸로 "capstone 완성·경계 양방향 확정"은 과하다. *방향성 시연*까지가 정직한 한계.
+- **원시 산출물 미보존**: grounded/intrinsic verdict JSON이 안 남아 재현 불가.
+- 그래도 *해석*("grounding의 정확도 효용은 추론으로 못 푸는 곳에만")은 합리적 — 단 이 한 실험이 그걸 *증명*한 건 아니다.
+
 ## 한 줄
 
 > 11실험 내내 안 갈리던 verdict 정확도가 **런타임 DB 상태에서 처음 갈렸다 — grounded 100% vs intrinsic 50%(우연).** 캡스톤의 유일한 예측(경계 = 비결정·환경의존)이 **실증**됐다. grounding의 정확도 값은 *추론으로 못 푸는 곳에만* 존재하고, 거기선 **유일한 정답 경로**다. (intrinsic은 정직하게 "모른다"고 했다 — 정직하나 정답은 아님.)

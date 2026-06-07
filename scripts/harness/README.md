@@ -7,11 +7,11 @@
 ## 무엇을 하나
 
 - **4개 생명주기 훅** (`.claude/settings.json` → 이 디렉토리): SessionStart 컨텍스트 주입 · PreToolUse 지배문서 라우팅 · PostToolUse(기계 린트 + 의미 적대자 리뷰 + 컴파일 grounding) · Stop anti-stub 게이트
-- **전파 3채널**: (A) 훅 reason 재주입 · (B) 다수결 검증단 Workflow(멀티에이전트) · (C) findings DLT 원장(세션 간 재노출)
+- **전파 3채널**: (A) 훅 reason 재주입(LLM 판단 기반) · (B) 다수결 검증단 Workflow(**수동 호출** — 훅 자동 트리거 아님) · (C) findings DLT 원장(세션 간 재노출)
 - **컨텍스트 최적화**: 긴 설계문서 통째 주입 대신 섹션만 추출(lost-in-the-middle 회피, 373→13줄)
-- **도구 쥔 검증단**: 검증자가 읽기만 하지 않고 실제 컴파일·검색·MCP로 grounding (CRITIC·Agent-as-a-Judge 근거)
-- **오케스트레이션**: 대규모 코드 작성을 분해→병렬→통합(`orchestrate-feature`), 가변 배치는 감독자(`supervise-batch`)
-- **연구 근거**: 설계 결정을 ICLR/NeurIPS/TACL 논문 16편 + 측정 eval로 뒷받침
+- **도구 쥔 검증단**: 검증자가 읽기만 하지 않고 실제 컴파일·검색·MCP로 grounding (CRITIC·Agent-as-a-Judge 근거). *단 우리 eval은 이 grounding의 **정확도 이득을 ~0으로 측정**했다 — 측정된 값은 정확도가 아니라 감사가능성·신뢰. 정확도 신호는 런타임/환경 상태(v-next)에만.*
+- **오케스트레이션**: 대규모 코드 작성을 분해→병렬→통합(`orchestrate-feature`), 가변 배치는 감독자(`supervise-batch`). *둘 다 수동 호출, supervise-batch·complete-stubs는 실제 dogfood 미검증.*
+- **연구 근거**: 설계 결정을 ICLR/NeurIPS/TACL 논문 16편으로 뒷받침. 측정 eval은 **n=1~2 파일럿**이라 "법칙/확정"이 아니라 *가설과 부합하는 방향의 관찰* 수준(한계는 `eval/` 문서에 정직히 기록).
 
 ## 구성 (이 디렉토리)
 

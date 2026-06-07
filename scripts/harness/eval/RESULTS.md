@@ -3,6 +3,14 @@
 > 가설별 측정 결과는 **각각 별도 파일**(`results/H?.md`). 이 파일은 한 줄 요약 인덱스.
 > 가설 카탈로그: [HYPOTHESES.md](HYPOTHESES.md) · 프레임워크: [README.md](README.md)
 
+> ## ⚠️ 신뢰도 한계 (정직하게 — 적대적 자기검증 결과 반영)
+> 아래 결론들은 **n=1~2 파일럿**이다. "법칙·capstone·확정" 같은 표현은 *과하며*, 정확히는 **"가설과 부합하는 방향의 관찰"**까지가 한계다.
+> - **통계 부재**: p-value·신뢰구간·반복·분산 없음.
+> - **원시 산출물 미보존**: 결론을 떠받치는 **v-next·GENQUALITY**의 verdict JSON·생성코드·채점 출력이 안 남아 **재현 불가**. (약한 negative 실험들만 verdict JSON 보유.)
+> - **단일 작성자**가 실험·채점·서술 일원화 → 자기참조 편향 가능(특히 GENQUALITY 채점이 메인의 *요약*을 봄).
+> - **자기모순 인정**: [EXTERNAL_HARNESS_COMPARISON](../../../docs/harness-engineering/research/EXTERNAL_HARNESS_COMPARISON.md)에서 revfactory를 "n작음·통계없음·자가측정"이라 비판했는데, **우리 GENQUALITY가 더 작은 n으로 같은 죄**를 저질렀다. "우리 eval이 더 엄밀"은 통제 설계(블라인드·대조군)엔 맞지만 *표본·재현성*엔 성립 안 한다.
+> - **천장 효과**: "11실험 negative"의 다수는 *동등성 증명*이 아니라 **검정력 부족(과제가 너무 쉬워 양쪽 천장)**. "차 0"은 "같다"의 증거가 아니다.
+
 | 가설 | 결과 파일 | 한 줄 결과 | 상태 |
 |------|----------|-----------|------|
 | **H1** 도구 grounding vs 읽기 | [results/H1.md](results/H1.md) | 정확도 차 없음(둘 다 4/4). 이득=추적가능성, 비용 +24% 시간. confound(read도 grep 씀) 발견 → v2 필요 | 미지지 |
