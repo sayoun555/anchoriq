@@ -24,7 +24,7 @@
     "coreModule": "anchoriq-core",
     "coreForbiddenImportPattern": "^import[[:space:]]+com\\.anchoriq\\.(api|collector|ai|automation)\\.",
     "secretPattern": "(password|passwd|secret|api[_]?key|access[_]?key|private[_]?key|client[_]?secret|token)[[:space:]]*=[[:space:]]*\"[^\"]{6,}\"",
-    "secretExcludePattern": "\\$\\{|\"\"|changeme|placeholder|example|your[_-]|xxxx|tokentype|Bearer|TODO",
+    "secretExcludePattern": "\\$\\{|\"\"|changeme|placeholder|example|your[_-]|xxxx|tokentype|\"Bearer\"|TODO",
     "stubMarkerPattern": "(//|/\\*|\\*)[[:space:]]*(TODO|FIXME|XXX|HACK|stub|STUB|mock|MOCK|placeholder|simulate|임시|미구현|추후|일단)|throw new UnsupportedOperationException|throw new RuntimeException\\(\"Not implemented"
   },
 

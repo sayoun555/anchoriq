@@ -20,12 +20,17 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 DOCS_DIR="$(jq -r '.designDocsDir // "plan"' "$SCRIPT_DIR/harness.config.json" 2>/dev/null)"; [[ -z "$DOCS_DIR" || "$DOCS_DIR" == "null" ]] && DOCS_DIR="plan"
 PLAN_DIR="$REPO_ROOT/$DOCS_DIR"
 
+# 설계문서 dir 안으로만 해석 (A9 컨테인먼트 — '../scripts/..' 같은 밖 경로 거부).
+# 후보를 고른 뒤 실제 경로가 PLAN_DIR 하위인지 확인한다.
 resolve_doc() {
-  local d="$1"
-  if [[ -f "$d" ]]; then echo "$d"; return 0; fi
-  if [[ -f "$PLAN_DIR/$d" ]]; then echo "$PLAN_DIR/$d"; return 0; fi
-  if [[ -f "$PLAN_DIR/${d#plan/}" ]]; then echo "$PLAN_DIR/${d#plan/}"; return 0; fi
-  return 1
+  local d="$1" cand=""
+  if   [[ -f "$PLAN_DIR/$d" ]]; then cand="$PLAN_DIR/$d"
+  elif [[ -f "$PLAN_DIR/${d#"$DOCS_DIR"/}" ]]; then cand="$PLAN_DIR/${d#"$DOCS_DIR"/}"
+  elif [[ -f "$PLAN_DIR/$(basename "$d")" ]]; then cand="$PLAN_DIR/$(basename "$d")"
+  elif [[ -f "$d" ]]; then cand="$d"
+  else return 1; fi
+  local real; real="$(cd "$(dirname "$cand")" 2>/dev/null && pwd)/$(basename "$cand")" || return 1
+  case "$real/" in "$PLAN_DIR"/*) echo "$cand"; return 0;; *) return 1;; esac
 }
 
 cmd="${1:-}"; shift || true

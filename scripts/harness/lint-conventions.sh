@@ -22,15 +22,15 @@ MAX_METHODS="$(cfg '.rules.maxPublicMethods // 7')"; MAX_METHODS="${MAX_METHODS/
 CORE_MODULE="$(cfg '.rules.coreModule // "anchoriq-core"')"; [[ -z "$CORE_MODULE" || "$CORE_MODULE" == "null" ]] && CORE_MODULE="anchoriq-core"
 CORE_FORBIDDEN="$(cfg '.rules.coreForbiddenImportPattern // empty')"; [[ -z "$CORE_FORBIDDEN" || "$CORE_FORBIDDEN" == "null" ]] && CORE_FORBIDDEN='^import[[:space:]]+com\.anchoriq\.(api|collector|ai|automation)\.'
 SECRET_PAT="$(cfg '.rules.secretPattern // empty')"; [[ -z "$SECRET_PAT" || "$SECRET_PAT" == "null" ]] && SECRET_PAT='(password|passwd|secret|api[_]?key|access[_]?key|private[_]?key|client[_]?secret|token)[[:space:]]*=[[:space:]]*"[^"]{6,}"'
-SECRET_EXCL="$(cfg '.rules.secretExcludePattern // empty')"; [[ -z "$SECRET_EXCL" || "$SECRET_EXCL" == "null" ]] && SECRET_EXCL='\$\{|""|changeme|placeholder|example|your[_-]|xxxx|tokentype|Bearer|TODO'
+SECRET_EXCL="$(cfg '.rules.secretExcludePattern // empty')"; [[ -z "$SECRET_EXCL" || "$SECRET_EXCL" == "null" ]] && SECRET_EXCL='\$\{|""|changeme|placeholder|example|your[_-]|xxxx|tokentype|"Bearer"|TODO'
 
 INPUT="$(cat)"
 FILE="$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')"
 [[ -z "$FILE" || ! -f "$FILE" ]] && exit 0
 
 # 검사 대상: source.root 하위 main 소스 + review 확장자 (test/eval/generated 제외)
-# (상대·절대 경로 모두 매치 — leading slash 요구 안 함)
-case "$FILE" in *"$SOURCE_ROOT"/*/src/main/*) : ;; *) exit 0 ;; esac
+# (상대·절대 경로 모두 매치 + 멀티모듈/단일모듈 둘 다 — A6)
+case "$FILE" in *"$SOURCE_ROOT"/*/src/main/*|*"$SOURCE_ROOT"/src/main/*) : ;; *) exit 0 ;; esac
 case "$FILE" in *_eval*|*Test.java|*/generated/*|*/test/*) exit 0 ;; esac
 _ext="${FILE##*.}"; _ok=0; for e in "${EXTS[@]}"; do [[ "$_ext" == "$e" ]] && _ok=1; done; [[ $_ok -eq 1 ]] || exit 0
 
@@ -43,8 +43,8 @@ if (( LINES > MAX_LINES )); then
 fi
 
 # ── public 메서드 수 (maxPublicMethods 초과, 휴리스틱) ────────────
-# @Configuration(=@Bean 팩토리)은 메서드가 많은 게 정상 → 제외해 오탐 방지.
-if ! grep -q '@Configuration' "$FILE"; then
+# @Configuration(=@Bean 팩토리)·인터페이스(계약상 메서드 多가 정상)는 제외해 오탐 방지 (A3).
+if ! grep -qE '@Configuration|^[[:space:]]*(public[[:space:]]+)?(sealed[[:space:]]+)?interface[[:space:]]' "$FILE"; then
   METHODS="$(grep -E '^[[:space:]]*(public|protected)[[:space:]].*\([^)]*\)' "$FILE" 2>/dev/null \
     | grep -vE '\b(class|interface|record|enum)\b' | grep -c .)"; METHODS="${METHODS:-0}"
   if (( METHODS > MAX_METHODS )); then
@@ -73,7 +73,7 @@ fi
 # ── 출력 ─────────────────────────────────────────────────────────
 [[ ${#warns[@]} -eq 0 ]] && exit 0
 
-REL="${FILE##*"$SOURCE_ROOT"/}"
+REL="${FILE#*"$SOURCE_ROOT"/}"  # 첫 source.root 기준(non-greedy) — 패키지에 동명 디렉토리 있어도 오표시 방지 (A4)
 MSG="⚠️ 하네스 컨벤션(warn) — ${SOURCE_ROOT}/${REL}"$'\n'
 for w in "${warns[@]}"; do MSG+="  • ${w}"$'\n'; done
 
