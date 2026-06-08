@@ -3,6 +3,28 @@
 > 이 하네스는 **config 주도**라, 새 프로젝트엔 *복사 + `harness.config.json` 교체*로 전개한다.
 > 핵심 원칙: **"무엇을 강제하나"(config) ↔ "어떻게 강제하나"(스크립트)** 분리. 규칙은 사라지지 않고 *그 프로젝트용으로 다시 선언*된다.
 
+## 빠른 길 — 3가지 전개 방법
+
+| 상황 | 방법 |
+|------|------|
+| **다른 머신/새 repo** | GitHub 릴리즈 번들 다운로드 (아래) |
+| **같은 머신 로컬 타깃** | `bash scripts/harness/install-to.sh <타깃경로>` (압축 불필요) |
+| **수동/세밀 제어** | 아래 "절차" 4파일 직접 복사 |
+
+### 릴리즈 번들 (가장 흔한 길)
+
+```bash
+# 대상 프로젝트 루트에서 — 받기+풀기+배치 한 줄:
+curl -sL https://github.com/sayoun555/anchoriq/releases/download/harness-v1.0.0/harness-bundle.tar.gz | tar xz
+bash harness-bundle/install.sh        # scripts/harness/ · .claude/ · CI 게이트를 제자리로
+```
+
+그다음 **반드시** 두 가지:
+1. `harness.config.json`을 이 프로젝트에 맞게 (AI에게 "이 문서대로 채워줘" — 맨 아래 섹션)
+2. **`/hooks` 한 번** (또는 Claude Code 재시작) → 훅이 *로드*돼야 라이브. ← 이게 활성 스위치, AI가 못 누른다.
+
+> 기존 `.claude/settings.json`이 있으면 `install.sh`가 덮지 않고 `settings.harness.json`으로 둔다 → 그 `"hooks"` 블록만 기존 settings에 병합.
+
 ## 무엇이 옮겨지나
 
 ```
@@ -62,3 +84,17 @@ bash scripts/harness/ground-check.sh <새 repo의 소스파일>
 ## 무엇이 *안* 옮겨지나 (홈 repo에 남음)
 
 - `docs/harness-engineering/`(연구·로드맵·트러블슈팅) · `docs/papers/`(논문) · `scripts/harness/eval/`(측정) — 메커니즘의 *근거/지식*이지 배포 짐이 아니다. 배포된 하네스는 이 연구로 *뒷받침*되지만 파일을 짊어지지 않는다.
+
+## 새 버전 릴리즈 내기 (홈 repo 관리자)
+
+번들은 `pack-harness.sh`가 만든다 — *메커니즘만* 담고 연구·런타임(`eval/`·`findings.jsonl`·`docs/`)은 제외.
+
+```bash
+bash scripts/harness/pack-harness.sh                 # → dist/harness-bundle.tar.gz
+gh release create harness-v1.0.1 dist/harness-bundle.tar.gz \
+  --title "AnchorIQ 하네스 v1.0.1" --notes "변경점 …" --latest
+# 기존 릴리즈 자산만 교체할 땐:
+gh release upload harness-v1.0.0 dist/harness-bundle.tar.gz --clobber
+```
+
+번들 내부 구조: `harness-bundle/{scripts/harness, .claude/{settings.json,agents}, .github/workflows, install.sh, USAGE.txt}`. 받는 쪽은 `install.sh`만 실행하면 된다.

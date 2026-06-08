@@ -2,7 +2,8 @@
 
 > 이 디렉토리는 **재사용 가능한 에이전트 하네스 유닛**이다. 앱 코드가 아니라, *그 앱을 설계와 어긋나지 않게 뽑아내도록* 에이전트(Claude Code)를 구속하는 인프라다. "설계 문서 먼저 읽기 / DDD 레이어 / 임시방편 금지" 같은 규칙을 산문이 아니라 **결정론적 훅**으로 강제하고, 그 설계 결정을 **동료심사 논문**으로 근거화했다.
 >
-> 다른 프로젝트로 옮기려면 → [`DEPLOY_HARNESS.md`](DEPLOY_HARNESS.md) (이 폴더 + `.claude/` 복사 후 `harness.config.json` 한 장만 교체).
+> 다른 프로젝트로 옮기려면 → [`DEPLOY_HARNESS.md`](DEPLOY_HARNESS.md). 가장 빠른 길은 [GitHub 릴리즈 번들](https://github.com/sayoun555/anchoriq/releases/latest):
+> `curl -sL .../harness-bundle.tar.gz | tar xz && bash harness-bundle/install.sh` → `harness.config.json` 교체 → `/hooks`. (같은 머신 로컬 타깃이면 `bash scripts/harness/install-to.sh <경로>`.)
 
 ## 무엇을 하나
 
