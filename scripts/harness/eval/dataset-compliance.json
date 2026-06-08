@@ -1,0 +1,29 @@
+{
+  "_meta": {
+    "experiment": "COMPLIANCE — 하네스 컨텍스트 주입이 *설계 준수율*을 바꾸나 (프로세스 거버넌스 측정)",
+    "registered_before_results": "이 파일은 *생성 전에* 작성됨 — 체크리스트·기준을 결과 보기 전 고정(사전등록, post-hoc 합리화 방지).",
+    "right_metric": "이전 GENQUALITY는 '결과 품질'을 쟀다(틀린 기준). 우리 하네스는 *프로세스 거버넌스* 목적이므로, 올바른 측정 = '주입이 설계 *준수*를 바꾸나'.",
+    "method": "같은 작업·같은 모델. Arm A=하네스가 주입하는 지배 규칙(governing-doc 포인터 + 해당 plan/ 절). Arm B=주입 없음(일반 'Java/Spring으로 구현'). 측정 차원 = *스펙-특정* 1개(아래). 생성코드 산출물 보존. 블라인드 채점(코드 직접, 어느 Arm인지 모름).",
+    "compliance_dimension": "ARCHITECTURE.md §Application: 'Application 서비스는 오케스트레이션만, 비즈니스 로직(계산·정책 판단)은 도메인(Entity/VO/DomainService)에.' → 핵심 비즈니스 로직이 *도메인 타입*에 있으면 COMPLIANT, Application 서비스에 inline이면 VIOLATION. (에이전트가 스펙 없이는 'Application=orchestration only'를 모를 수 있는 스펙-특정 규칙.)",
+    "honest_caveats": [
+      "n=2 (작음). 방향성만.",
+      "준 tautology: 규칙을 알려주면 더 따르는 건 당연 — 측정하는 건 '주입 *메커니즘*이 준수를 *바꾸나*'(안 바꾸면=주입 무의미=informative negative).",
+      "준수율 ≠ 품질: GENQUALITY가 보였듯 과준수는 과설계가 될 수 있다. 이건 *준수*만 잰다.",
+      "Arm B도 AnchorIQ repo 앰비언트(CLAUDE.md)를 일부 받을 수 있음 → A vs B 차이는 *하한*."
+    ],
+    "scoring": "각 출력: 핵심 로직 위치 = DOMAIN(compliant) | APPLICATION-inline(violation) | MIXED. 준수율 = compliant 비율."
+  },
+  "tasks": [
+    {
+      "id": "comp-1",
+      "prompt": "선박 공급망 리스크 *집계* 기능을 Application 서비스로 구현하라. 여러 리스크 신호(제재 매칭 수, 악천후 노출 시간, 선령)를 받아 가중 합산해 0~100 종합 점수와 등급(LOW/MED/HIGH/CRIT)을 산출한다. Java 21.",
+      "core_logic": "신호별 점수화 + 가중합산 + 등급 분류 (이게 Application에 inline이면 위반, 도메인 VO/DomainService에 있으면 준수)"
+    },
+    {
+      "id": "comp-2",
+      "prompt": "구독 플랜별 기능 제한 *판단* 기능을 Application 서비스로 구현하라. 플랜(FREE/PRO/ENTERPRISE)과 요청 기능(API호출수·내보내기·실시간알림)을 받아 허용/거부와 사유를 판단한다. Java 21.",
+      "core_logic": "플랜별 한도·허용 판단 로직 (Application inline이면 위반, 도메인에 있으면 준수)"
+    }
+  ],
+  "armA_inject": "이 코드는 AnchorIQ DDD 코드베이스에 들어간다. governing-doc 라우팅: 이 파일의 지배 문서 → ARCHITECTURE.md(§Application=오케스트레이션만). 해당 절: 'Application 서비스는 *오케스트레이션만* 한다 — 비즈니스 로직(계산·정책 판단)은 도메인 Entity/VO/Domain Service가 보유한다. Application이 로직을 다 가지면 빈약한 도메인(anemic) 안티패턴이다.' 인터페이스 우선(Service는 interface+impl). 이 규칙을 따르라."
+}
