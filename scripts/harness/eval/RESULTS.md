@@ -25,6 +25,8 @@
 | **H5** 궤적(diff) vs 최종상태 | [results/H5.md](results/H5.md) | diff도 정확 추론(현재상태 anchoring 없음). 둘 다 정답. 부수: 패널이 PR/diff 리뷰에도 쓸 수 있음 | 미지지 |
 | **v-next** 런타임/환경 경계 ★ | [results/VNEXT.md](results/VNEXT.md) | **첫 POSITIVE.** 쌍둥이 finding(user_id만 다름)에서 grounded **2/2(100%)** vs intrinsic **2/4(우연)**. DB 상태가 verdict를 가르자 처음으로 정확도가 갈림 — 캡스톤 예측 실증 | **지지(경계)** |
 | **B 생성품질** A/B ★ | [results/GENQUALITY.md](results/GENQUALITY.md) | *검증*이 아니라 *생성* 측정(사각지대). 단순과제 하네스 **−2.5(과설계)** → 규칙 모던화(record/sealed+YAGNI) → 복잡과제 **+7.5(승)**. **생성 합성=난이도-조건부** | **조건부 지지** |
+| **COMPLIANCE** 설계 준수율(주입 vs 앰비언트) | [results/COMPLIANCE.md](results/COMPLIANCE.md) | 추론 가능 DDD 규칙: 타깃 주입·앰비언트 **둘 다 100%(null)**. 앰비언트(CLAUDE.md+기존코드)가 이미 충분 → 주입 redundant | 미지지 |
+| **BOUNDARY** 비추론 임의계약(주입 vs 앰비언트) ★ | [results/BOUNDARY.md](results/BOUNDARY.md) | 의도적 비추론(Kafka 파티션·그룹명·DLT) 골라도 **둘 다 5/5(null)** — 그 값이 *기존 코드에 정적 존재*해 앰비언트가 회수. **"정적 소스에 있으면 redundant" 경계 확정** | 미지지(경계강화) |
 | H6·H7·H10 | (예정·천장 예상) | [HYPOTHESES.md](HYPOTHESES.md) | ⬜ |
 
 ## ★ 메타 결론 (12실험) — 경계를 찾았다
