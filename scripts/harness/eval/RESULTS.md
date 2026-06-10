@@ -31,9 +31,18 @@
 | **ADVERSARY** 적대자 recall/오탐률 (판별 쌍 8) ★★ | [results/ADVERSARY.md](results/ADVERSARY.md) | 검증 절반의 신뢰도 측정. **recall 4/4**(tell 없는 footgun S2·추론형 과설계 S3 포함), **하드 오탐 0**(YAGNI 무인터페이스·record VO 안 물림), 의도 축 판별 4/4. eval 전체 *최강 positive*. (C1 샘플오염·n=8·의미판단단독 하한) | **지지(검증 절반 신뢰도 높음)** |
 | H6·H7·H10 | (예정·천장 예상) | [HYPOTHESES.md](HYPOTHESES.md) | ⬜ |
 
-## ★ 메타 결론 (12실험) — 경계를 찾았다
+## ★★ 최상위 결론 (~15실험) — 주입은 0, 검증은 양수
 
-> **11실험 = 일관된 negative**(grounding 정확도 이득 0) **+ v-next = 첫 positive**(grounding이 유일한 정답 경로). 두 결과가 합쳐져 **경계를 양방향으로 확정**한다.
+> **종합 문서: [docs/harness-engineering/research/HARNESS_VALUE_FINDINGS.md](../../../docs/harness-engineering/research/HARNESS_VALUE_FINDINGS.md)** (흩어진 실험을 "하네스 값은 어디 있나"로 잇는 keystone).
+>
+> 하네스의 두 절반 — **(A) 미리 주입**(SessionStart·PreToolUse) vs **(B) 사후 검증**(PostToolUse 적대자·결정론 게이트·런타임 grounding):
+> - **A(주입) ≈ 0**: 유능 모델은 정적 소스(코드·문서·일반지식)의 정보를 알아서 회수 → redundant. (capstone·COMPLIANCE·BOUNDARY·DRIFT 생성-측)
+> - **B(검증) = 양수**: 적대자가 *실제로 낸 미묘한 버그*를 잡음 — recall 4/4·하드 오탐 0(ADVERSARY), self-invocation 버그 블라인드 적발(DRIFT). 런타임 상태가 정답을 가르면 grounding이 유일 정답경로(v-next).
+> - **무게중심 = "알려주기"가 아니라 "잡기".** 개선도 그쪽으로(footgun 체크리스트 PR #11, 이식성 유지).
+
+## ★ 메타 결론 (capstone 12실험) — grounding 경계를 찾았다
+
+> **11실험 = 일관된 negative**(grounding 정확도 이득 0) **+ v-next = 첫 positive**(grounding이 유일한 정답 경로). 두 결과가 합쳐져 **경계를 양방향으로 확정**한다. (위 최상위 결론의 *검증-측 정확도* 축에 해당.)
 
 - **추론으로 풀리는 모든 것**(결정론 코드·표준 라이브러리·DDD 위반·diff·20스텝 산술) → 패널은 도구·렌즈수·grounding·framing·코드접근 어느 축을 흔들어도 정확. grounding의 값 = **auditability/confidence**(정확도 아님).
 - **추론으로 못 푸는 것**(실제 DB/런타임 상태) → grounded 100% vs intrinsic 우연. grounding이 **유일한 정답 경로.** intrinsic은 정직하게 "모른다"고 하나 정답은 못 냄(refute-bias = 우연).
