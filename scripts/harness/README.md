@@ -4,6 +4,8 @@
 >
 > 다른 프로젝트로 옮기려면 → [`DEPLOY_HARNESS.md`](DEPLOY_HARNESS.md). 가장 빠른 길은 [GitHub 릴리즈 번들](https://github.com/sayoun555/anchoriq/releases/latest):
 > `curl -sL .../harness-bundle.tar.gz | tar xz && bash harness-bundle/install.sh` → `harness.config.json` 교체 → `/hooks`. (같은 머신 로컬 타깃이면 `bash scripts/harness/install-to.sh <경로>`.)
+>
+> **이건 Claude Code 전용 풀 버전이다. Codex·Cursor·Aider 등 *어느 툴에서도* 쓰는 범용판은 → [`../../harness-universal/`](../../harness-universal/)** (AGENTS.md + git훅/CI 강제 + 툴별 훅 어댑터). 근거: [research/CODEX_AND_PORTABILITY.md](../../docs/harness-engineering/research/CODEX_AND_PORTABILITY.md).
 
 ## 무엇을 하나
 

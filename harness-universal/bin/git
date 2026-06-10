@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+#
+# git 래퍼 — 에이전트/사람이 `--no-verify`/`-n`으로 훅을 우회하는 걸 차단.
+#   PATH 앞쪽에 이 디렉토리를 두면(install.sh가 안내) 모든 git 호출을 가로챈다.
+#   근거: docs/harness-engineering/research/CODEX_AND_PORTABILITY.md §3
+#   (훅은 구조적 강제지만 --no-verify로 우회 가능 → 이 래퍼 + CI 백스톱이 그 구멍을 막음)
+#
+set -uo pipefail
+# 진짜 git 찾기 (이 래퍼 자신 제외)
+REAL_GIT=""
+SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/git"
+while IFS= read -r cand; do
+  [[ -x "$cand" && "$cand" != "$SELF" ]] && { REAL_GIT="$cand"; break; }
+done < <(type -ap git 2>/dev/null)
+[[ -z "$REAL_GIT" ]] && REAL_GIT="/usr/bin/git"
+
+# --no-verify / -n 감지 (commit·push·merge·rebase 등 훅 우회 대상)
+guarded=false; subcmd=""
+for arg in "$@"; do
+  case "$arg" in
+    commit|push|merge|cherry-pick|rebase|am) [[ -z "$subcmd" ]] && subcmd="$arg" ;;
+    --no-verify) guarded=true ;;
+    -n) [[ "$subcmd" == "commit" ]] && guarded=true ;;   # commit -n = --no-verify
+  esac
+done
+
+if $guarded && [[ -n "$subcmd" ]] && [[ "${HARNESS_ALLOW_NO_VERIFY:-0}" != "1" ]]; then
+  echo "⛔ git 래퍼: '$subcmd'에서 --no-verify/-n(훅 우회) 차단." >&2
+  echo "   훅이 실패하면 우회 말고 원인을 고쳐라. (정말 필요하면 HARNESS_ALLOW_NO_VERIFY=1)" >&2
+  exit 1
+fi
+exec "$REAL_GIT" "$@"

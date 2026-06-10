@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# pre-push — push 전 전체 main 소스 결정론 게이트 + (LLM 있으면) 의미 적대자.
+# CI 백스톱의 로컬 사전판. 무겁다 → push 시점에만.
+set -uo pipefail
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+DIR=""
+for d in .harness harness-universal scripts/harness-universal; do
+  [[ -f "$ROOT/$d/check.sh" ]] && { DIR="$ROOT/$d"; break; }
+done
+[[ -z "$DIR" ]] && { echo "pre-push: harness 못 찾음 — 통과"; exit 0; }
+
+bash "$DIR/check.sh" --all || exit 1
+# 의미 적대자: push되는 커밋들의 변경 파일을 검토(LLM CLI 있을 때만, 기본 비차단)
+if [[ "${HARNESS_REVIEW_ON_PUSH:-0}" == "1" ]]; then
+  CHANGED="$(git diff --name-only @{push}.. 2>/dev/null || git diff --name-only HEAD~1.. 2>/dev/null)"
+  [[ -n "$CHANGED" ]] && bash "$DIR/review.sh" $CHANGED
+fi
+exit 0

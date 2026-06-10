@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# pre-commit — 결정론 게이트(check.sh)를 staged 변경에 실행. 실패 시 커밋 차단.
+# 툴 무관: 어느 에이전트/사람이 커밋하든 발동. (우회 방어: bin/git 래퍼 + CI)
+set -uo pipefail
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+CHECK=""
+for d in .harness harness-universal scripts/harness-universal; do
+  [[ -f "$ROOT/$d/check.sh" ]] && { CHECK="$ROOT/$d/check.sh"; break; }
+done
+[[ -z "$CHECK" ]] && { echo "pre-commit: harness check.sh 못 찾음 — 통과"; exit 0; }
+bash "$CHECK" || exit 1
+exit 0

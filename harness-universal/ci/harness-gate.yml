@@ -1,0 +1,30 @@
+# 범용 하네스 CI 백스톱 (툴 무관 강제의 최종 보루).
+# 로컬 git 훅을 --no-verify로 우회해도 여기서 잡힌다. 타깃 repo의 .github/workflows/ 로 복사.
+name: harness-gate
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: 결정론 게이트 (stub/secret/size) — 전체 소스
+        run: |
+          DIR=""
+          for d in .harness harness-universal scripts/harness-universal; do
+            [ -f "$d/check.sh" ] && DIR="$d" && break
+          done
+          [ -z "$DIR" ] && { echo "harness 없음"; exit 1; }
+          bash "$DIR/check.sh" --all
+      # (선택) 빌드/컴파일 — harness.config.json 의 build.compileCommand 를 프로젝트에 맞게.
+      # - name: compile
+      #   run: <프로젝트 빌드 명령>
+      # (선택) LLM 의미 적대자 — API 키 시크릿 필요시.
+      # - name: semantic review
+      #   env: { ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }} }
+      #   run: bash .harness/review.sh $(git diff --name-only origin/${{ github.base_ref }}...HEAD)
