@@ -20,8 +20,8 @@
           {
             "type": "command",
             "command": "bash .harness/adapters/codex/codex-hook.sh stop",
-            "timeout": 120,
-            "statusMessage": "하네스 전체 검사"
+            "timeout": 300,
+            "statusMessage": "하네스 전체 검사 + 의미 적대자(review)"
           }
         ]
       }
