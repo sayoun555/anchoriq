@@ -20,7 +20,7 @@ echo "🧭 범용 하네스 → $TARGET"
 
 # 1) .harness/ 복사 (eval·findings·연구 제외 — 메커니즘만)
 mkdir -p "$TARGET/.harness"
-for item in check.sh review.sh harness.config.json review-protocol.md AGENTS.md README.md CODEX_SETUP.md git-hooks bin adapters ci; do
+for item in check.sh review.sh harness.config.json review-protocol.md AGENTS.md README.md CODEX_SETUP.md CLAUDE_SETUP.md git-hooks bin adapters ci; do
   [[ -e "$SRC/$item" ]] && cp -R "$SRC/$item" "$TARGET/.harness/"
 done
 chmod +x "$TARGET/.harness/"*.sh "$TARGET/.harness/git-hooks/"* "$TARGET/.harness/bin/git" "$TARGET/.harness/adapters/codex/"*.sh 2>/dev/null || true
