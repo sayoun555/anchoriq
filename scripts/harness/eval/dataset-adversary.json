@@ -1,0 +1,45 @@
+{
+  "_preregistration": "생성 전 작성(박제). 목적: PostToolUse 적대자의 *신뢰도* 측정 — recall(진짜 위반을 막나) + false-positive(깨끗한 코드를 잘못 막나). 생성 절반은 GENQUALITY로 쟀고, 이건 검증 절반의 'is it good'. DRIFT는 적대자가 버그 1개를 잡는 걸 봤을 뿐 — 비율은 미측정.",
+  "experiment": "ADVERSARY — 적대자 recall / 오탐률 (판별 쌍 설계)",
+  "date_planned": "2026-06-10",
+
+  "design": "4개 축 × (위반 1 + 깨끗 1) = 8 파일. 같은 축의 쌍은 *반대 판정*이어야 함. 적대자가 쌍 안에서 위반만 막고 깨끗만 통과 → 진짜 판별. 둘 다 같은 판정 → 편향(판별 못 함). 블라인드: 적대자는 seeded/clean 여부도, 무슨 버그인지도 모름. repo 파일로 안 쓰고 프롬프트 inline(오염·유령finding 방지).",
+
+  "pairs": [
+    {
+      "axis": "DDD 레이어 (Application=오케스트레이션만)",
+      "block": { "id": "S1", "path": "application/intelligence/risk/VesselRiskApplicationServiceImpl.java", "violation": "리스크 점수 계산(가중치·임계·등급판정) 비즈니스 로직이 Application 서비스에 inline. 도메인 서비스/엔티티로 가야 함", "tell": "있음(기존 도메인서비스 존재)" },
+      "pass":  { "id": "C3", "path": "application/intelligence/risk/RiskScoreApplicationServiceImpl.java", "cleanliness": "검증+위임만. 계산은 RiskScorePolicy(도메인) 호출. 정석 오케스트레이션" }
+    },
+    {
+      "axis": "트랜잭션 footgun (self-invocation @Transactional)",
+      "block": { "id": "S2", "path": "application/operation/audit/AuditArchiveServiceImpl.java", "violation": "@Transactional private 메서드를 같은 클래스에서 자기호출 → 프록시 우회로 트랜잭션 무효. (결제 아닌 도메인 = 정답패턴 tell 없음 — footgun 체크리스트로만 잡아야)", "tell": "없음(payment 같은 정답 예시 부재)" },
+      "pass":  { "id": "C4", "path": "application/operation/notification/NotificationDispatchServiceImpl.java", "cleanliness": "외부 호출은 tx 밖, DB 쓰기는 별도 빈 public @Transactional, 실패 시 보상. 정석" }
+    },
+    {
+      "axis": "추상화 (YAGNI ↔ 과설계)",
+      "block": { "id": "S3", "path": "domain/intelligence/risk/service/SpeculativeRiskWeightStrategyImpl.java", "violation": "단일 구현·고정 순수계산에 인터페이스 + 정책 주입을 얹음 = 과설계(speculative generality). 프로토콜 §2: 과설계도 위반", "tell": "n/a" },
+      "pass":  { "id": "C1", "path": "domain/maritime/vessel/service/DistanceCalculator.java", "cleanliness": "단일 구현·고정 순수함수에 인터페이스 *없음* = YAGNI 정석. 프로토콜: 단일구현 무인터페이스는 위반 아님 (오탐 유혹)" }
+    },
+    {
+      "axis": "캡슐화 (원시집착 ↔ record VO)",
+      "block": { "id": "S4", "path": "domain/maritime/vessel/model/Vessel.java", "violation": "좌표를 double 2개로 노출 + 전 필드 public setter (Tell-Don't-Ask 위반·원시집착). Coordinate VO·행위 메서드여야", "tell": "있음(Coordinate VO 설계 존재)" },
+      "pass":  { "id": "C2", "path": "domain/maritime/vessel/model/Coordinate.java", "cleanliness": "record로 표현된 불변 VO + 검증 + 행위(distanceTo). 프로토콜: record VO는 정당 (보일러플레이트 강요 오탐 유혹)" }
+    }
+  ],
+
+  "scoring": {
+    "recall": "seeded 4개(S1-S4) 중 적대자가 block AND 실제 심은 위반을 명명한 비율",
+    "false_positive": "clean 4개(C1-C4) 중 적대자가 잘못 block한 비율 (특히 유혹 케이스 C1·C2)",
+    "discrimination": "축별로 block은 막고 pass는 통과했나(쌍 판별 성공률 /4)"
+  },
+
+  "prediction": "낙관: recall 4/4, FP 0/4(특히 C1·C2 통과), 판별 4/4. 위험: (a) S2(tell 없는 self-invocation)를 footgun 체크리스트 없이도 잡나 — PR #11 검증, (b) C1/C2를 '인터페이스 없다/보일러플레이트 없다'며 잘못 막는 오탐.",
+
+  "preregistered_caveats": [
+    "n=8(축당 2). 비율 추정의 신뢰구간 넓음 — 파일럿.",
+    "inline 코드라 적대자가 ground-check(컴파일) 못 씀 → 의미 판단만. 실제 훅은 컴파일 신호도 받음 → 이 측정은 *의미판단 단독* 하한.",
+    "내가 심은 위반이 '진짜 위반'이라는 전제 — 일부는 정도 문제(S3 과설계)라 판정 경계가 주관적일 수 있음.",
+    "S1·S4는 tell 있음(catch 쉬움), S2는 tell 없음(어려움) — recall을 tell 유무로 분해 해석."
+  ]
+}
