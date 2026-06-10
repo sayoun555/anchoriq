@@ -24,8 +24,8 @@ cd "$ROOT" || { echo '{"continue":true}'; exit 0; }
 if [[ "$MODE" == "stop" ]]; then
   OUT="$(bash "$CHECK" --all 2>&1)"; rc=$?
 else
-  # post: 방금 편집(apply_patch)으로 바뀐 작업트리 소스만
-  CHANGED="$(git diff --name-only --diff-filter=ACM 2>/dev/null)"
+  # post: 방금 편집(apply_patch)으로 바뀐 작업트리 소스 — *수정 + 신규(untracked)* 둘 다
+  CHANGED="$( { git diff --name-only --diff-filter=ACM; git ls-files --others --exclude-standard; } 2>/dev/null | sort -u )"
   if [[ -z "$CHANGED" ]]; then echo '{"continue":true}'; exit 0; fi
   OUT="$(bash "$CHECK" $CHANGED 2>&1)"; rc=$?
 fi
