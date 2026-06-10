@@ -15,6 +15,9 @@ PROTO="$SCRIPT_DIR/review-protocol.md"
 CONFIG="$SCRIPT_DIR/harness.config.json"
 cd "$REPO_ROOT" || exit 0
 
+# 재귀 가드: 적대자 LLM이 또 review를 부르는 걸 막음(codex-hook과 동일 플래그)
+[[ "${HARNESS_REVIEWING:-0}" == "1" ]] && { echo "ℹ️ review.sh: 재귀 가드(HARNESS_REVIEWING) — 건너뜀"; exit 0; }
+
 # 1) LLM CLI 감지
 LLM="${HARNESS_LLM:-}"
 if [[ -z "$LLM" ]]; then
@@ -49,9 +52,10 @@ TMP="$(mktemp)"; trap 'rm -f "$TMP"' EXIT
 } > "$TMP"
 
 echo "🔎 review.sh: $LLM 로 ${#FILES[@]}개 파일 의미 검토 중..."
+# HARNESS_REVIEWING=1 을 LLM 호출에 심어, 내부 codex/claude의 훅이 또 review를 부르는 재귀를 차단
 case "$LLM" in
-  codex)  OUT="$(codex exec - < "$TMP" 2>&1)" || OUT="$(codex exec "$(cat "$TMP")" 2>&1)" ;;
-  claude) OUT="$(claude -p < "$TMP" 2>&1)" ;;
+  codex)  OUT="$(HARNESS_REVIEWING=1 codex exec - < "$TMP" 2>&1)" || OUT="$(HARNESS_REVIEWING=1 codex exec "$(cat "$TMP")" 2>&1)" ;;
+  claude) OUT="$(HARNESS_REVIEWING=1 claude -p < "$TMP" 2>&1)" ;;
 esac
 echo "$OUT"
 
