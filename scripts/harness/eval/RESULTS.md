@@ -28,6 +28,7 @@
 | **COMPLIANCE** 설계 준수율(주입 vs 앰비언트) | [results/COMPLIANCE.md](results/COMPLIANCE.md) | 추론 가능 DDD 규칙: 타깃 주입·앰비언트 **둘 다 100%(null)**. 앰비언트(CLAUDE.md+기존코드)가 이미 충분 → 주입 redundant | 미지지 |
 | **BOUNDARY** 비추론 임의계약(주입 vs 앰비언트) ★ | [results/BOUNDARY.md](results/BOUNDARY.md) | 의도적 비추론(Kafka 파티션·그룹명·DLT) 골라도 **둘 다 5/5(null)** — 그 값이 *기존 코드에 정적 존재*해 앰비언트가 회수. **"정적 소스에 있으면 redundant" 경계 확정** | 미지지(경계강화) |
 | **DRIFT** "문서 무시 시 하네스 강세?" PreToolUse vs PostToolUse ★★ | [results/DRIFT.md](results/DRIFT.md) | 사용자 가설 검증. 생성-측 드리프트 0(Opus·Haiku 모두 준수, 리마인더 무관). **그러나 PostToolUse 적대자가 Haiku의 self-invocation 트랜잭션 버그를 블라인드 적발(힌트제거 후에도 #1)** — 리마인더가 못 막은 걸 적대자가 잡음 | **지지(적대자=양수, 주입=0)** |
+| **ADVERSARY** 적대자 recall/오탐률 (판별 쌍 8) ★★ | [results/ADVERSARY.md](results/ADVERSARY.md) | 검증 절반의 신뢰도 측정. **recall 4/4**(tell 없는 footgun S2·추론형 과설계 S3 포함), **하드 오탐 0**(YAGNI 무인터페이스·record VO 안 물림), 의도 축 판별 4/4. eval 전체 *최강 positive*. (C1 샘플오염·n=8·의미판단단독 하한) | **지지(검증 절반 신뢰도 높음)** |
 | H6·H7·H10 | (예정·천장 예상) | [HYPOTHESES.md](HYPOTHESES.md) | ⬜ |
 
 ## ★ 메타 결론 (12실험) — 경계를 찾았다
