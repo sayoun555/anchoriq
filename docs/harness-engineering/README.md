@@ -72,7 +72,7 @@ docs/harness-engineering/  ← 지금 보는 문서들 (세세히 분류)
     CONTEXT_OPTIMIZATION.md            긴 문서 중간소실 방지
     ORCHESTRATION.md                   대규모 코드 작성 오케스트레이션(분해→병렬→통합·감독자)
   research/                          ◀ 왜 그렇게 했나 (증거 기반)
-    HARNESS_VALUE_FINDINGS.md          ★ 종합: 하네스 값은 어디 있나(~15실험) — 주입 0·검증 양수
+    HARNESS_VALUE_FINDINGS.md          ★ 종합: 하네스 값은 어디 있나(16실험) — 주입 0·검증 양수(방향성)
     RESEARCH_HARNESS_AND_MULTIAGENT.md 딥리서치(출처 21개) — 설계 근거
     COMPOSITION_PRINCIPLES.md          합성 5축 + 독립성·비대칭 법칙
     EXTERNAL_HARNESS_COMPARISON.md     외부 하네스(revfactory) 비교·학습
@@ -138,7 +138,7 @@ HARNESS.md                 루트 1페이지 요약
 2. [HOOKS_AND_SCRIPTS.md](architecture/HOOKS_AND_SCRIPTS.md) — 각 부품 입출력·사용법
 3. [ADVERSARY_AND_PROPAGATION.md](architecture/ADVERSARY_AND_PROPAGATION.md) — 적대자·전파·다수결
 4. [CONTEXT_OPTIMIZATION.md](architecture/CONTEXT_OPTIMIZATION.md) — 긴 문서 중간소실 대응
-5. ★ [HARNESS_VALUE_FINDINGS.md](research/HARNESS_VALUE_FINDINGS.md) — **하네스 값은 어디 있나(~15실험 종합): 주입 0·검증 양수**
+5. ★ [HARNESS_VALUE_FINDINGS.md](research/HARNESS_VALUE_FINDINGS.md) — **하네스 값은 어디 있나(16실험 종합): 설계문서 주입 ≈0·검증 양수(방향성·한계 포함)**
 6. [RESEARCH_HARNESS_AND_MULTIAGENT.md](research/RESEARCH_HARNESS_AND_MULTIAGENT.md) — 왜 이렇게 설계했나(논문·기업 근거)
 7. [SELF_REPAIR_GUARDS.md](research/SELF_REPAIR_GUARDS.md) — 자율 수정 루프 가드(동료심사 근거) + 신뢰도 티어
 8. [UPGRADE_ROADMAP.md](roadmap/UPGRADE_ROADMAP.md) — 논문 기반 하네스 고도화 6안 + 스킬스/MCP 매핑
