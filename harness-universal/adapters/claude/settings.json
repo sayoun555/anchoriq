@@ -1,0 +1,26 @@
+{
+  "_about": "Claude Code 훅 어댑터(범용 하네스 최소판). 타깃 repo의 .claude/settings.json 에 hooks 블록을 병합. 같은 check.sh를 PostToolUse(Edit|Write)/Stop에 배선. (이 repo의 풀 하네스 scripts/harness/는 더 풍부 — governing-doc 라우팅·의미 적대자 agent훅 등. 이건 *이식용* 얇은 판.)",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .harness/adapters/codex/codex-hook.sh post"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .harness/adapters/codex/codex-hook.sh stop"
+          }
+        ]
+      }
+    ]
+  }
+}
