@@ -28,6 +28,17 @@
     "stubMarkerPattern": "(//|/\\*|\\*)[[:space:]]*(TODO|FIXME|XXX|HACK|stub|STUB|mock|MOCK|placeholder|simulate|임시|미구현|추후|일단)|throw new UnsupportedOperationException|throw new RuntimeException\\(\"Not implemented"
   },
 
+  "review": {
+    "_about": "PostToolUse 적대자(review-protocol.md)가 *항상 점검*할 footguns. **이식성 주의: 이 목록은 스택-특정(아래는 Java/Spring 것)이라 새 프로젝트엔 반드시 교체한다.** 프로토콜 산문엔 footgun 내용을 박지 않고(=Java 전용화 방지) 여기 데이터로 둔 이유 = '무엇을 점검하나(config) ↔ 어떻게 점검하나(프로토콜)' 분리. 근거 실험: eval/results/DRIFT.md (적대자가 self-invocation 버그를 잡았으나 '모델이 마침 앎'에 의존 → 명시 체크리스트로 강제화). 새 스택 예: Python/Django면 ORM lazy 쿼리·async-in-sync·N+1 등으로 갈아끼움.",
+    "footguns": [
+      { "id": "tx-self-invocation", "check": "@Transactional이 private 메서드 또는 같은 클래스 자기호출(this.)에 걸림 → Spring AOP 프록시 우회로 트랜잭션이 *실제로 안 걸림*. 트랜잭션 메서드는 별도 빈(public)으로 분리해야 함", "sev": "high" },
+      { "id": "tx-external-call", "check": "@Transactional 메서드 안에서 외부 API(결제/HTTP) 호출 → DB 커넥션 점유 + 롤백 불가. 외부 호출은 트랜잭션 밖 + 보상 트랜잭션", "sev": "high" },
+      { "id": "proxy-self-invocation-async-cache", "check": "@Async·@Cacheable·@Retryable도 자기호출이면 프록시 우회로 무효(@Transactional과 동일 함정)", "sev": "med" },
+      { "id": "jpa-n-plus-1-lazy", "check": "루프 안에서 lazy 연관 접근(N+1) / 트랜잭션 밖에서 lazy 초기화(LazyInitializationException)", "sev": "med" },
+      { "id": "kafka-ack-paths", "check": "수동 ack(Acknowledgment)가 정상·예외 모든 경로에서 호출되나 / @KafkaListener가 예외를 삼켜 DLT/재시도를 우회하지 않나", "sev": "med" }
+    ]
+  },
+
   "governingDoc": {
     "routableGlobs": ["*.java", "*.kt", "*.ts", "*.tsx", "*.yml", "*.yaml", "*.gradle", "*.gradle.kts", "*Dockerfile", "*docker-compose*"],
     "map": [
