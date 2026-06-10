@@ -14,11 +14,14 @@ echo "🧭 하네스 설치 → $TARGET"
 mkdir -p "$TARGET/scripts/harness" "$TARGET/.claude/agents" "$TARGET/.github/workflows"
 
 # 메커니즘만 (eval/·findings.jsonl·연구 문서 제외)
-for f in "$SCRIPT_DIR"/*.sh "$SCRIPT_DIR"/*.workflow.js \
+for f in "$SCRIPT_DIR"/*.sh \
          "$SCRIPT_DIR/harness.config.json" "$SCRIPT_DIR/review-protocol.md" \
          "$SCRIPT_DIR/README.md" "$SCRIPT_DIR/DEPLOY_HARNESS.md"; do
   [[ -f "$f" ]] && cp "$f" "$TARGET/scripts/harness/"
 done
+# 워크플로우(수동 오케스트레이션)는 workflows/ 하위로
+mkdir -p "$TARGET/scripts/harness/workflows"
+cp "$SCRIPT_DIR"/workflows/*.workflow.js "$TARGET/scripts/harness/workflows/" 2>/dev/null || true
 cp "$REPO_ROOT/.claude/agents/"*.md "$TARGET/.claude/agents/" 2>/dev/null || true
 chmod +x "$TARGET"/scripts/harness/*.sh 2>/dev/null || true
 

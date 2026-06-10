@@ -27,10 +27,11 @@
 | `check-stubs.sh` | `.sh` 훅/CI | Stop·CI — 미완성 마커(stub/TODO/임시) 게이트 |
 | `finding.sh` | `.sh` | findings DLT 원장 CLI (add/list/resolve/count-open) |
 | `plan-search.sh` | `.sh` | 설계문서 섹션 추출(toc/section/grep) — 컨텍스트 최적화 |
-| `verify-findings*.workflow.js` | Workflow | 채널 B 검증단(grounded/intrinsic/blind/rubric) |
-| `orchestrate-feature.workflow.js` | Workflow | 대규모 코드: 분해→병렬→통합 |
-| `supervise-batch.workflow.js` | Workflow | 감독자: 가변 배치 동적 분배 |
-| `complete-stubs.workflow.js` | Workflow | bounded stub-완성 루프(가드6) |
+| `workflows/` | dir | **수동 호출 워크플로우 모음**(아래) |
+| `workflows/verify-findings*.workflow.js` | Workflow | 채널 B 검증단(grounded/intrinsic/blind/rubric) |
+| `workflows/orchestrate-feature.workflow.js` | Workflow | 대규모 코드: 분해→병렬→통합 |
+| `workflows/supervise-batch.workflow.js` | Workflow | 감독자: 가변 배치 동적 분배 |
+| `workflows/complete-stubs.workflow.js` | Workflow | bounded stub-완성 루프(가드6) |
 | `eval/` | dir | 측정 프레임워크(가설·데이터셋·결과·스코어러) |
 
 `.claude/` (커밋됨): `settings.json`(4훅 + 권한) · `agents/`(검증 커스텀 에이전트 3종).

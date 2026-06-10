@@ -84,7 +84,7 @@ bash scripts/harness/finding.sh resolve <id> --note "RiskScoringDomainService로
 
 ### 채널 B — 다수결 검증단 (Workflow)
 
-**스크립트**: [`scripts/harness/verify-findings.workflow.js`](../../../scripts/harness/verify-findings.workflow.js).
+**스크립트**: [`scripts/harness/workflows/verify-findings.workflow.js`](../../../scripts/harness/workflows/verify-findings.workflow.js).
 DLT의 열린 finding을, finding마다 **3개의 서로 다른 렌즈**를 가진 적대자가 인용 코드+지배 문서를 직접 읽고 **반증(refute) 시도** → 과반(2/3) 반증이면 거짓양성으로 폐기, 살아남으면 confirmed.
 
 ```

@@ -22,11 +22,14 @@ mkdir -p "$BUNDLE/scripts/harness" "$BUNDLE/.claude/agents" "$BUNDLE/.github/wor
 cd "$REPO_ROOT"
 
 # 1) 메커니즘만 복사 (eval/·findings.jsonl 제외)
-for f in scripts/harness/*.sh scripts/harness/*.workflow.js \
+for f in scripts/harness/*.sh \
          scripts/harness/harness.config.json scripts/harness/review-protocol.md \
          scripts/harness/README.md scripts/harness/DEPLOY_HARNESS.md; do
   [[ -f "$f" ]] && cp "$f" "$BUNDLE/scripts/harness/"
 done
+# 워크플로우(수동 오케스트레이션)는 workflows/ 하위로
+mkdir -p "$BUNDLE/scripts/harness/workflows"
+cp scripts/harness/workflows/*.workflow.js "$BUNDLE/scripts/harness/workflows/" 2>/dev/null || true
 cp .claude/settings.json "$BUNDLE/.claude/settings.json"
 cp .claude/agents/*.md "$BUNDLE/.claude/agents/" 2>/dev/null || true
 [[ -f .github/workflows/harness-gate.yml ]] && cp .github/workflows/harness-gate.yml "$BUNDLE/.github/workflows/"
@@ -42,7 +45,7 @@ TARGET="${1:-$(pwd)}"
 echo "🧭 하네스 설치 → $TARGET"
 
 mkdir -p "$TARGET/scripts/harness" "$TARGET/.claude/agents" "$TARGET/.github/workflows"
-cp "$HERE"/scripts/harness/* "$TARGET/scripts/harness/"
+cp -R "$HERE"/scripts/harness/* "$TARGET/scripts/harness/"   # -R: workflows/ 하위까지
 cp "$HERE"/.claude/agents/*.md "$TARGET/.claude/agents/" 2>/dev/null || true
 chmod +x "$TARGET"/scripts/harness/*.sh 2>/dev/null || true
 
