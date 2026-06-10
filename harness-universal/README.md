@@ -31,6 +31,8 @@ bash install.sh /path/to/your-project
 넣는 것: `.harness/`(메커니즘 전체) · git `core.hooksPath` 배선 · `AGENTS.md`(없으면) · CI 백스톱.
 그다음 **반드시**: `.harness/harness.config.json`을 그 스택에 맞게 — 특히 **`review.footguns`(스택 전용, 교체 필수)** · `build.compileCommand` · `source`. (자세히: install 출력 / 이 파일 아래.)
 
+> **Codex로 설치/사용하려면 → [`CODEX_SETUP.md`](CODEX_SETUP.md)** 를 AI(Codex)에게 그대로 주면 단계별로 알아서 설치·설정·검증한다.
+
 ## 파일
 | 파일 | 역할 |
 |------|------|
