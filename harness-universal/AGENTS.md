@@ -23,6 +23,9 @@
 
 → 훅이 실패하면 **우회하지 말고 원인을 고쳐라.**
 
+## 2.5 연속성 (긴/다세션 작업)
+긴 작업은 `progress.md`(=`harness.config.json`의 `state.progressFile`)에 **완료 / 남은 일 / 막힌 점 / 다음 단계**를 적어두며 진행하라. SessionStart에 `session-context.sh`가 이걸 *재주입*하므로, 세션이 끊겨도(컨텍스트 소실/압축) 이어갈 수 있다. 짧은 작업엔 비워둬도 무해. (정적 지침은 이 AGENTS.md, *세션 간 상태*는 progress.md — 역할 분리.)
+
 ## 3. 빌드 / 테스트
 - 빌드: `«빌드 명령»`  ·  테스트: `«테스트 명령»`  (정식은 `harness.config.json`의 `build.*`)
 - 커밋 전 로컬에서 한 번: `bash .harness/check.sh`

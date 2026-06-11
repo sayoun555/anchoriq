@@ -4,6 +4,11 @@
 
   "designDocsDir": "plan",
 
+  "state": {
+    "_about": "연속성(긴/다세션 작업의 컨텍스트 소실 방지). session-context.sh가 SessionStart에 이 파일을 재주입한다. 에이전트가 작업하며 완료/남은일/막힌점을 여기 갱신. 짧은 작업엔 무해(없거나 비면 주입 안 함).",
+    "progressFile": "progress.md"
+  },
+
   "source": {
     "root": "backend",
     "mainGlobs": ["anchoriq-*/src/main/java"],

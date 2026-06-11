@@ -1,6 +1,18 @@
 {
   "_about": "Codex CLI 훅 어댑터. 타깃 repo의 .codex/hooks.json 으로 복사(또는 병합). matcher=apply_patch(Codex 에디터 툴). 경로는 설치 위치에 맞게 install.sh가 조정하거나 직접 수정. 근거: docs/harness-engineering/research/CODEX_AND_PORTABILITY.md",
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .harness/session-context.sh",
+            "timeout": 15,
+            "statusMessage": "하네스 연속성(progress)"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "apply_patch",
