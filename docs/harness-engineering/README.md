@@ -2,6 +2,8 @@
 
 > **이 디렉토리는 "AnchorIQ 앱을 어떻게 만들었나"가 아니라, "그 앱을 설계와 어긋나지 않게 뽑아낸 도구(에이전트 하네스) 자체"를 다룬다.**
 > 이 문서 하나만 읽어도 전체를 이해할 수 있게 정리했다. 더 깊은 내용은 각 섹션의 링크로.
+>
+> 여기는 **Claude Code 전용 *풀* 하네스**(`scripts/harness/`)의 연구·아키텍처다. Codex·Cursor·Aider 등 *어느 툴에서도* 쓰는 **범용 이식판은 → [`harness-universal/`](../../harness-universal/)** (근거: [research/CODEX_AND_PORTABILITY.md](research/CODEX_AND_PORTABILITY.md)).
 
 ---
 
@@ -76,6 +78,7 @@ docs/harness-engineering/  ← 지금 보는 문서들 (세세히 분류)
     RESEARCH_HARNESS_AND_MULTIAGENT.md 딥리서치(출처 21개) — 설계 근거
     COMPOSITION_PRINCIPLES.md          합성 5축 + 독립성·비대칭 법칙
     EXTERNAL_HARNESS_COMPARISON.md     외부 하네스(revfactory) 비교·학습
+    CODEX_AND_PORTABILITY.md           Codex 훅·AGENTS.md 표준·git훅 — 범용 이식 근거(딥서치)
     SELF_REPAIR_GUARDS.md              자율 수정 루프 가드(동료심사 근거)
   roadmap/                           ◀ 다음 (고도화)
     UPGRADE_ROADMAP.md                 논문 기반 고도화 6안 + 스킬스/MCP(배선 완료)
@@ -140,10 +143,11 @@ HARNESS.md                 루트 1페이지 요약
 4. [CONTEXT_OPTIMIZATION.md](architecture/CONTEXT_OPTIMIZATION.md) — 긴 문서 중간소실 대응
 5. ★ [HARNESS_VALUE_FINDINGS.md](research/HARNESS_VALUE_FINDINGS.md) — **하네스 값은 어디 있나(16실험 종합): 설계문서 주입 ≈0·검증 양수(방향성·한계 포함)**
 6. [RESEARCH_HARNESS_AND_MULTIAGENT.md](research/RESEARCH_HARNESS_AND_MULTIAGENT.md) — 왜 이렇게 설계했나(논문·기업 근거)
-7. [SELF_REPAIR_GUARDS.md](research/SELF_REPAIR_GUARDS.md) — 자율 수정 루프 가드(동료심사 근거) + 신뢰도 티어
-8. [UPGRADE_ROADMAP.md](roadmap/UPGRADE_ROADMAP.md) — 논문 기반 하네스 고도화 6안 + 스킬스/MCP 매핑
-8. [../papers/](../papers/README.md) — 근거 논문 원문 PDF 16편(신뢰도 A/B/C 라벨)
-9. [troubleshooting/](troubleshooting/) — 막혔을 때
+7. [CODEX_AND_PORTABILITY.md](research/CODEX_AND_PORTABILITY.md) — Codex 훅·AGENTS.md 표준·git훅 → 범용 이식([harness-universal/](../../harness-universal/))
+8. [SELF_REPAIR_GUARDS.md](research/SELF_REPAIR_GUARDS.md) — 자율 수정 루프 가드(동료심사 근거) + 신뢰도 티어
+9. [UPGRADE_ROADMAP.md](roadmap/UPGRADE_ROADMAP.md) — 논문 기반 하네스 고도화 6안 + 스킬스/MCP 매핑
+10. [../papers/](../papers/README.md) — 근거 논문 원문 PDF 16편(신뢰도 A/B/C 라벨)
+11. [troubleshooting/](troubleshooting/) — 막혔을 때
 
 ## 7. 운영 명령 (자주 쓰는 것)
 

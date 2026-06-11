@@ -21,7 +21,7 @@
 | 파일 | 종류 | 역할 |
 |------|------|------|
 | `harness.config.json` | **설정 contract** | 프로젝트 전용값(설계문서 dir·빌드명령·모듈패턴·docMap·규칙 임계). **배포 시 이것만 교체** |
-| `session-context.sh` | `.sh` 훅 | SessionStart — design-first 프로토콜 + 문서 인덱스 + 열린 findings 주입 |
+| `session-context.sh` | `.sh` 훅 | SessionStart — design-first 프로토콜 + 문서 인덱스 + 열린 findings + `progress.md`(연속성) 주입 |
 | `governing-doc.sh` | `.sh` 훅 | PreToolUse — 수정 파일 → 지배 설계문서 라우팅(config docMap) |
 | `lint-conventions.sh` | `.sh` 훅 | PostToolUse — 기계 컨벤션(파일크기·모듈의존·시크릿) warn |
 | `review-protocol.md` | `.md` 적대자 | PostToolUse 의미 리뷰어 프로토콜(DDD/트랜잭션/캡슐화/YAGNI 판단) |

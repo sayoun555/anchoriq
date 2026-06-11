@@ -20,6 +20,8 @@
 | `.harness/` | 하네스 메커니즘 전체 | 읽기만 |
 | **`.harness/harness.config.json`** | ★ 스택 설정(source·build·footguns) | **Step 2에서 편집** |
 | `.harness/check.sh` · `review.sh` | 결정론 게이트 · 의미 적대자 | 읽기만 |
+| `.harness/session-context.sh` | 연속성 — SessionStart에 progress 재주입 | 읽기만 |
+| `progress.md`(루트) | 작업 상태·핸드오프(긴 작업) | 작업하며 갱신 |
 | `.harness/adapters/codex/{hooks.json,codex-hook.sh}` | Codex 훅 다리 | 복사(Step 3) |
 | `.harness/review-protocol.md` | 적대자 판단 규칙 | 필요시 조정 |
 | `.codex/hooks.json` | Codex 훅 배선(이게 있어야 Codex가 발동) | Step 3에서 생성 |
@@ -70,9 +72,10 @@ mkdir -p .codex
 cp .harness/adapters/codex/hooks.json .codex/hooks.json
 ```
 이게 켜는 것(Codex 자동):
+- **세션 시작마다** → `session-context.sh` = `progress.md`(작업 상태) 재주입(긴/다세션 연속성)
 - **편집(apply_patch)마다** → `codex-hook.sh post` = 결정론 게이트(stub/secret) 즉시 차단
 - **턴 끝(Stop)마다** → `codex-hook.sh stop` = 결정론 + **의미 적대자**(footgun/DDD를 LLM이 검토)
-✓ `jq -e '.hooks.PostToolUse[0].matcher=="apply_patch"' .codex/hooks.json` true.
+✓ `jq -e '.hooks.PostToolUse[0].matcher=="apply_patch"' .codex/hooks.json` true (`.hooks.SessionStart`도 있음).
 
 ## 4. AGENTS.md (Codex가 자동으로 읽는 지침)
 설치 때 루트에 `AGENTS.md`가 없었으면 템플릿이 복사됐다. 있다면 `.harness/AGENTS.md`의 **§2(강제)** 블록을 기존 것에 병합하라. `«»` 부분을 이 프로젝트 값(설계문서 위치·빌드·테스트 명령)으로 채워라. **32KiB 넘으면 Codex가 자르니** 간결히.
@@ -106,6 +109,7 @@ Codex로 소스 파일에 `// TODO` 같은 미완성 마커를 넣는 편집을 
 
 ## 사용법 (설치 후 일상)
 - **그냥 평소대로 코딩한다.** 결정론 게이트(stub/secret)는 편집·커밋마다 자동. 의미 적대자(footgun/DDD)는 턴 끝마다 자동.
+- **긴 작업이면 `progress.md`에 완료/남은일/막힌점을 적어둔다** → SessionStart에 자동 재주입돼, 세션이 끊겨도 이어간다. 짧은 작업엔 안 써도 됨(gitignore).
 - 의미 적대자를 *차단형*으로(위반 시 멈춤) 쓰려면 환경변수 `HARNESS_REVIEW_BLOCK=1`. 기본은 *표면화*(보고만, 루프 방지).
 - 수동 검토: `bash .harness/review.sh <파일...>` (LLM CLI 자동감지).
 - 전체 점검: `bash .harness/check.sh --all`.
