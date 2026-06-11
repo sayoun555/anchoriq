@@ -20,7 +20,7 @@ echo "🧭 범용 하네스 → $TARGET"
 
 # 1) .harness/ 복사 (eval·findings·연구 제외 — 메커니즘만)
 mkdir -p "$TARGET/.harness"
-for item in check.sh review.sh harness.config.json review-protocol.md AGENTS.md README.md CODEX_SETUP.md CLAUDE_SETUP.md git-hooks bin adapters ci; do
+for item in check.sh review.sh session-context.sh harness.config.json review-protocol.md AGENTS.md README.md CODEX_SETUP.md CLAUDE_SETUP.md git-hooks bin adapters ci; do
   [[ -e "$SRC/$item" ]] && cp -R "$SRC/$item" "$TARGET/.harness/"
 done
 chmod +x "$TARGET/.harness/"*.sh "$TARGET/.harness/git-hooks/"* "$TARGET/.harness/bin/git" "$TARGET/.harness/adapters/codex/"*.sh 2>/dev/null || true
@@ -51,6 +51,13 @@ else
   mkdir -p "$TARGET/.github/workflows"
   cp "$SRC/ci/harness-gate.yml" "$TARGET/.github/workflows/harness-gate.yml"
   echo "✅ CI 백스톱 복사"
+fi
+
+# 5) progress.md(연속성 상태) gitignore — 개인 핸드오프, 커밋 노이즈 방지
+PF="$(jq -r '.state.progressFile // "progress.md"' "$TARGET/.harness/harness.config.json" 2>/dev/null)"; [[ -z "$PF" || "$PF" == "null" ]] && PF="progress.md"
+if ! grep -qxF "$PF" "$TARGET/.gitignore" 2>/dev/null; then
+  printf '\n# 하네스 연속성 상태(개인 핸드오프)\n%s\n' "$PF" >> "$TARGET/.gitignore"
+  echo "✅ .gitignore 에 $PF 추가(연속성 상태)"
 fi
 
 cat <<NEXT

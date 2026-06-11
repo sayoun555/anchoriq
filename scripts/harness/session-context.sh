@@ -35,6 +35,17 @@ else
   FINDINGS_BLOCK=""
 fi
 
+# 진행 상태 파일 — 이전 세션 핸드오프를 재주입 (연속성; 긴/다세션 작업의 컨텍스트 소실 방지)
+PROGRESS_FILE="$(jq -r '.state.progressFile // "progress.md"' "$SCRIPT_DIR/harness.config.json" 2>/dev/null)"; [[ -z "$PROGRESS_FILE" || "$PROGRESS_FILE" == "null" ]] && PROGRESS_FILE="progress.md"
+if [[ -s "$REPO_ROOT/$PROGRESS_FILE" ]]; then
+  PROGRESS_BLOCK="
+진행 상태 — 이전 세션 핸드오프 (${PROGRESS_FILE}, 연속성):
+$(sed 's/^/  /' "$REPO_ROOT/$PROGRESS_FILE" | head -40)
+  → 작업하며 이 파일을 갱신하라(완료/남은 일/막힌 점/다음 단계). 긴 작업에서 세션이 끊겨도 이어가게."
+else
+  PROGRESS_BLOCK=""
+fi
+
 read -r -d '' CTX <<EOF || true
 🧭 AnchorIQ 하네스 — 작업 시작 프로토콜 (branch: ${BRANCH})
 
@@ -43,7 +54,7 @@ read -r -d '' CTX <<EOF || true
   2) plan/IMPLEMENTATION_PLAN.md 에서 현재 Phase 확인
   3) 그 Phase가 지정한 plan/ 문서 → 전부 읽은 뒤 코드 작성
   ※ 학습 후 더 나은 방법으로 바꾸는 건 OK(근거 필수). 학습 없이 자기 방식은 금지.
-
+${PROGRESS_BLOCK}
 활성 하네스 가드:
   • PreToolUse(Edit|Write): 수정 파일을 지배하는 plan/ 문서를 자동 포인팅
   • PostToolUse(Edit|Write): ① 기계 린트(파일분리·core 모듈의존·시크릿 — warn) ② 의미 리뷰어가 plan/·AGENTS.md 위반 검사 → 위반 시 반려

@@ -84,3 +84,6 @@ docs/ANCHORIQ_CS_COMPLETE_GUIDE.html
 
 # 외부 연구 논문 PDF — docs/papers/README.md의 arXiv ID로 재다운로드(42MB repo 비대 방지)
 docs/papers/*.pdf
+
+# 하네스 연속성 상태(개인 핸드오프 — findings.jsonl과 동일 취급)
+progress.md
