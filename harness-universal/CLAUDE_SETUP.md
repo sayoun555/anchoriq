@@ -22,6 +22,8 @@
 | `.harness/` | 하네스 메커니즘 전체 | 읽기만 |
 | **`.harness/harness.config.json`** | ★ 스택 설정(source·build·footguns) | **Step 2 편집** |
 | `.harness/check.sh` · `review.sh` | 결정론 게이트 · 의미 적대자 | 읽기만 |
+| `.harness/session-context.sh` | 연속성 — SessionStart에 progress 재주입 | 읽기만 |
+| `progress.md`(루트) | 작업 상태·핸드오프(긴 작업) | 작업하며 갱신 |
 | `.harness/adapters/claude/settings.json` | Claude 훅 *템플릿*(여기서 hooks 블록 복사) | 참조 |
 | `.harness/adapters/codex/codex-hook.sh` | 훅 다리(Claude·Codex 공용) | 읽기만 |
 | `.claude/settings.json` | **Claude 훅 배선(여기에 병합)** | Step 3 병합 |
@@ -80,9 +82,10 @@ fi
 jq -e '.hooks.PostToolUse[0].matcher=="Edit|Write"' .claude/settings.json   # 검증
 ```
 이게 켜는 것:
+- **세션 시작마다** → `session-context.sh` = `progress.md`(작업 상태) 재주입(긴/다세션 연속성)
 - **편집(Edit/Write)마다** → 결정론 게이트(stub/secret) 즉시 차단
 - **턴 끝(Stop)마다** → 결정론 + **의미 적대자**(footgun/DDD)
-✓ `.claude/settings.json`에 PostToolUse(`Edit|Write`)·Stop 훅이 있고, 기존 permissions 등이 보존됐다.
+✓ `.claude/settings.json`에 SessionStart·PostToolUse(`Edit|Write`)·Stop 훅이 있고, 기존 permissions 등이 보존됐다.
 
 > 기존에 다른 hooks가 있었다면 `jq -s '.[0] * .[1]'` 단순 병합은 덮을 수 있다 — 그 경우 **두 hooks를 사람이 직접 합치게** 멈추고 보고하라.
 
@@ -129,6 +132,7 @@ echo '{"tool_name":"Edit"}' | bash .harness/adapters/codex/codex-hook.sh post < 
 
 ## 사용법 (설치+활성화 후)
 - 평소대로 코딩. 결정론 게이트(stub/secret)는 편집·커밋마다 자동, 의미 적대자(footgun/DDD)는 턴 끝마다 자동.
+- **긴 작업이면 `progress.md`에 완료/남은일/막힌점 기록** → SessionStart에 자동 재주입(세션 끊겨도 이어감). 짧은 작업엔 생략(gitignore).
 - 적대자 *차단형*: `HARNESS_REVIEW_BLOCK=1`(기본은 표면화·루프방지).
 - 수동: `bash .harness/review.sh <파일...>` · 전체: `bash .harness/check.sh --all`.
 - CI: `.github/workflows/harness-gate.yml`가 PR마다 백스톱.
