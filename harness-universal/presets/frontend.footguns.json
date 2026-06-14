@@ -13,6 +13,10 @@
     { "id": "a11y-nonsemantic-interactive", "check": "div/span + onClick(키보드·스크린리더 안 됨) → <button>/<a> 네이티브로(키보드·role 내장). 커스텀 모달 대신 <dialog>(포커스·ESC 내장). AI는 디자인에 a11y 정보 없으면 *기본으로 빠뜨림* — 의식적으로 넣어라", "sev": "high" },
     { "id": "a11y-labels-alt", "check": "<img> alt 없음 / <input>에 연결된 <label for=id> 없음 / 아이콘버튼 aria-label 없음 → 스크린리더 못 읽음", "sev": "med" },
     { "id": "a11y-focus-live", "check": "토글 요소(모달/사이드바)에 autofocus·포커스트랩·ESC 없음 / :focus-visible 스타일 없음 / 동적 콘텐츠(카운트다운·알림) aria-live 없음 / 애니메이션에 prefers-reduced-motion 폴백 없음", "sev": "med" },
-    { "id": "theming-hardcoded-color", "check": "하드코딩 색/값(다크모드·멀티브랜드 깨짐) 대신 *시맨틱 토큰*(color-bg-primary). Figma variable modes(light/dark/breakpoint) → CSS var/토큰으로 매핑", "sev": "med" }
+    { "id": "theming-hardcoded-color", "check": "하드코딩 색/값(다크모드·멀티브랜드 깨짐) 대신 *시맨틱 토큰*(color-bg-primary). Figma variable modes(light/dark/breakpoint) → CSS var/토큰으로 매핑", "sev": "med" },
+    { "id": "server-state-useeffect", "check": "useEffect로 데이터 페칭 — AI 최다 안티패턴. abort(언마운트 누수)·캐시·재시도·에러분기·dedup 다 없음. TanStack Query 또는 Server Component로", "sev": "high" },
+    { "id": "security-xss-client-secret", "check": "dangerouslySetInnerHTML에 미살균 사용자/API 콘텐츠 → XSS(DOMPurify 또는 제거). API키/시크릿을 클라 컴포넌트에 하드코딩 → 번들 노출(서버 함수로 프록시). AI 코드 40%가 보안결함", "sev": "high" },
+    { "id": "rules-of-hooks", "check": "조건/루프 안 hook 호출(positional 깨짐) / exhaustive-deps 무시한 stale closure / 린터 suppress. 컴파일은 되나 런타임에 깨짐. 함수형 setter로 deps 줄이기", "sev": "high" },
+    { "id": "i18n-hardcoded-string", "check": "UI 문자열 하드코딩 → i18n 키로(다국어·복수형·날짜/숫자 로케일). a11y처럼 AI가 기본으로 빠뜨림", "sev": "med" }
   ]
 }

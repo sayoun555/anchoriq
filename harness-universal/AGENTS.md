@@ -34,6 +34,7 @@
 - **성능** — 무거운 렌더(차트·마크다운)는 Server Component로(번들↓), `'use client'` 경계 최소화. render마다 무거운 계산은 `useState(()=>…)` lazy init. 순차 await 워터폴 대신 `Promise.all`. (Vercel React Best Practices: `npx skills add vercel-labs/agent-skills`.)
 - **접근성(a11y) — AI가 기본으로 빠뜨리는 축, 의식적으로** — div/span+onClick 말고 `<button>`/`<a>`(키보드·role 내장), 모달은 `<dialog>`. `<img>` alt·`<input>` `<label for>`·아이콘버튼 aria-label·동적콘텐츠 aria-live·`prefers-reduced-motion`. 결정론: `eslint-plugin-jsx-a11y`.
 - **테밍/반응형** — 하드코딩 색 대신 *시맨틱 토큰*(다크모드·멀티브랜드). Figma variable modes(light/dark/breakpoint) → CSS var. 반응형은 LLM 약점이라 명시적으로.
+- **보안·데이터·hooks (AI 코드 40% 보안결함)** — `dangerouslySetInnerHTML` 미살균 금지(DOMPurify)·API키 클라 하드코딩 금지(서버 프록시)·데이터페칭은 useEffect 말고 TanStack Query/Server Component(abort·캐시·에러)·조건부 hook/exhaustive-deps 무시 금지·UI 문자열은 i18n 키. (출처: "9 patterns that fail in production".)
 - **검증** — 컴포넌트 완성 후 `bash .harness/figma-check.sh <컴포넌트>` 로 렌더 vs Figma 측정 비교(델타로 수정). 첫 패스엔 시각비교 말고 스펙으로 생성→그다음 측정.
 
 ## 3. 빌드 / 테스트
