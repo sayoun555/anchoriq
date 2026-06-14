@@ -1,0 +1,14 @@
+{
+  "_about": "프론트엔드(React/Next.js/Tailwind) 생성 렌즈 — Figma→코드 *생성*을 잘하게 하는 footgun. 컴파일은 되나 *런타임에 깨지거나(하이드레이션) 느려지거나(번들·재렌더) 디자인시스템을 벗어나는(arbitrary value=context poisoning)* 것들. 프론트 프로젝트면 이 배열을 harness.config.json 의 review.footguns 로 쓴다(백엔드와 섞지 말고 프로젝트별 분리). 근거: docs/figma-to-code/RESEARCH.md. 결정론 보강은 eslint-plugin-tailwindcss(no-arbitrary-value) + Vercel agent-skills(npx skills add vercel-labs/agent-skills).",
+  "footguns": [
+    { "id": "hydration-browser-api", "check": "render 중 window/document/localStorage 접근 → SSR↔클라 mismatch. useEffect(클라 전용)로 이동", "sev": "high" },
+    { "id": "hydration-nondeterministic", "check": "render에서 new Date()/Date.now()/Math.random() → 서버·클라 값 달라 하이드레이션 깨짐. useEffect로 미루거나 useId 사용", "sev": "high" },
+    { "id": "missing-use-client", "check": "hook(useState/useEffect)·브라우저 API 쓰면서 'use client' 없음 → 하이드레이션 silent 크래시(Next App Router)", "sev": "high" },
+    { "id": "arbitrary-value-poisoning", "check": "Tailwind 임의값 text-[#333]·leading-[22.126px]·w-[437px] = 디자인토큰 우회(context poisoning). config 토큰/유틸리티(border-4 등)로. Figma MCP 출력 그대로 베끼지 말 것", "sev": "high" },
+    { "id": "client-heavy-render", "check": "차트·마크다운·syntax highlight 등 무거운 렌더를 Client Component에서 → 번들 비대. Server Component로 옮기고 'use client' 경계 최소화", "sev": "med" },
+    { "id": "render-time-compute", "check": "render마다 JSON.parse/무거운 계산 반복 → 재렌더 낭비. useState(()=>...) lazy init 또는 useMemo", "sev": "med" },
+    { "id": "async-waterfall", "check": "순차 await가 병렬 가능한데 워터폴(Vercel: 600ms 대기) → Promise.all/조건부로. 불필요 fetch는 필요할 때만", "sev": "med" },
+    { "id": "duplicate-component", "check": "디자인시스템에 이미 있는 컴포넌트 대신 새로 만듦(병렬 구조 난립). 기존 컴포넌트 재사용(Code Connect 정신) — variant로 확장", "sev": "med" },
+    { "id": "invalid-html-nesting", "check": "<div> in <p> 같은 잘못된 중첩 → 브라우저가 DOM 재구성 → 하이드레이션 mismatch. 시맨틱 유효 구조", "sev": "low" }
+  ]
+}

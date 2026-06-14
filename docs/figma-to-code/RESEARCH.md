@@ -90,6 +90,23 @@
 - 도구: `get_design_context`(선택영역 구조화 React+Tailwind=시작점) · `get_variable_defs`(변수·토큰) · **Skills**(도구 사용 순서 가이드, [figma/mcp-server-guide](https://github.com/figma/mcp-server-guide))
 - **원격 MCP `mcp.figma.com/mcp` 권장**(데스크탑 localhost:3845보다). 산업: 제품팀 **65%+** AI 코드생성 사용.
 
+## ★ 프론트 *생성* 렌즈 (검증 말고 생성을 잘하게 — 하네스에 배선됨: `presets/frontend.footguns.json` + AGENTS §2.6)
+
+Figma→코드는 ①생성(프론트 작업)+②검증(figma-check). 생성을 잘하게 하는 footgun(컴파일은 되나 *런타임 깨짐/느려짐/디자인 이탈*):
+
+**하이드레이션**(Next App Router AI 코드 #1 실패, [oneuptime 2026](https://oneuptime.com/blog/post/2026-01-24-fix-hydration-mismatch-errors-nextjs/view)):
+- render 중 `window`/`document`/`localStorage` → useEffect · `new Date()`/`Math.random()` → useEffect/`useId` · hook/브라우저API 쓰면 `'use client'` · `<div>` in `<p>` 금지.
+
+**Context poisoning**(디자인 이탈, [eslint-plugin-tailwindcss](https://github.com/francoismassart/eslint-plugin-tailwindcss/blob/master/docs/rules/no-arbitrary-value.md)):
+- Tailwind 임의값 `text-[#333]`·`leading-[22.126px]`·`w-[437px]` = 토큰 우회. `no-arbitrary-value` 규칙으로 강제(`border-4` not `border-[4px]`). Figma MCP 출력 그대로 베끼지 말 것. + 기존 컴포넌트 재사용(variant 확장).
+
+**성능**([Vercel 공식 React Best Practices](https://vercel.com/blog/introducing-react-best-practices), 영향순):
+- CRITICAL: 비동기 워터폴 제거(순차 await→`Promise.all`, 600ms) · 번들↓(300KB > useMemo 미세최적). 무거운 렌더(차트·md)는 **Server Component**로, `'use client'` 경계 최소.
+- 재렌더: `useState(()=>JSON.parse(...))` lazy init, 루프 합치기. INP>200ms면 JS 줄이고 defer.
+- **`npx skills add vercel-labs/agent-skills`** → 이 규칙들을 AGENTS.md에 컴파일(Claude Code 등 에이전트가 자동 적발).
+
+→ **결정론 보강**: `eslint-plugin-tailwindcss`(no-arbitrary-value) + tsc + Vercel skills를 `build.compileCommand`/lint에. **의미**: 위 footgun을 적대자(review.sh)가. **검증**: figma-check.
+
 ## 출처
 
 - Figma 공식 — MCP 서버 가이드: https://help.figma.com/hc/en-us/articles/32132100833559-Guide-to-the-Figma-MCP-server
@@ -111,6 +128,11 @@
 - Codex CLI + Figma MCP 워크플로우: https://codex.danielvaughan.com/2026/03/27/codex-cli-figma-mcp-design-to-code/
 - 툴 비교(Builder/Locofy/Anima 실측): https://www.sixtythirtyten.co/blog/from-figma-to-code-ai-design-to-dev-workflows-in-2026
 - Figma 릴리즈 노트(최신 추적): https://www.figma.com/release-notes/
+- ★ Vercel — React Best Practices(성능 규칙, AGENTS 컴파일): https://vercel.com/blog/introducing-react-best-practices
+- ESLint — no-arbitrary-value(토큰 강제): https://github.com/francoismassart/eslint-plugin-tailwindcss/blob/master/docs/rules/no-arbitrary-value.md
+- Next.js 하이드레이션 mismatch 원인·예방(2026): https://oneuptime.com/blog/post/2026-01-24-fix-hydration-mismatch-errors-nextjs/view
+- Evil Martians — Tailwind 카오스 방지 5원칙: https://evilmartians.com/chronicles/5-best-practices-for-preventing-chaos-in-tailwind-css
+- Next.js 프로덕션 최적화 체크리스트: https://nextjs.org/docs/app/guides/production-checklist
 
 ## 추가 자료 (네가 찾아온 것 — 계속 추가)
 

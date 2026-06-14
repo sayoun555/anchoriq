@@ -26,6 +26,14 @@
 ## 2.5 연속성 (긴/다세션 작업)
 긴 작업은 `progress.md`(=`harness.config.json`의 `state.progressFile`)에 **완료 / 남은 일 / 막힌 점 / 다음 단계**를 적어두며 진행하라. SessionStart에 `session-context.sh`가 이걸 *재주입*하므로, 세션이 끊겨도(컨텍스트 소실/압축) 이어갈 수 있다. 짧은 작업엔 비워둬도 무해. (정적 지침은 이 AGENTS.md, *세션 간 상태*는 progress.md — 역할 분리.)
 
+## 2.6 프론트엔드 생성 (Figma→코드 — UI 프로젝트만)
+디자인을 코드로 옮길 때 *생성*은 아래 규칙으로, *검증*은 `figma-check.sh`(렌더 vs 디자인 측정)로. 근거: `docs/figma-to-code/RESEARCH.md`. footgun은 `presets/frontend.footguns.json`.
+- **디자인 토큰만, 임의값 금지** — `text-[#333]`·`leading-[22.126px]` 같은 Tailwind 임의값은 *디자인시스템 우회(context poisoning)*. config 토큰/유틸리티로. **Figma MCP가 뱉은 임의값을 그대로 베끼지 마라.** 결정론 보강: `eslint-plugin-tailwindcss`의 `no-arbitrary-value`.
+- **기존 컴포넌트 재사용** — 디자인시스템에 있으면 새로 만들지 말고 재사용(병렬 구조 난립 금지). variant로 확장. (Code Connect 정신.)
+- **하이드레이션 안전(Next App Router)** — render 중 window/document/localStorage·`new Date()`/`Math.random()` 금지(→useEffect/useId). hook·브라우저 API 쓰면 `'use client'` 명시. 잘못된 HTML 중첩(`<div>` in `<p>`) 금지.
+- **성능** — 무거운 렌더(차트·마크다운)는 Server Component로(번들↓), `'use client'` 경계 최소화. render마다 무거운 계산은 `useState(()=>…)` lazy init. 순차 await 워터폴 대신 `Promise.all`. (Vercel React Best Practices: `npx skills add vercel-labs/agent-skills` 로 이 규칙들을 AGENTS에 컴파일 가능.)
+- **검증** — 컴포넌트 완성 후 `bash .harness/figma-check.sh <컴포넌트>` 로 렌더 vs Figma 측정 비교(델타로 수정). 첫 패스엔 시각비교 말고 스펙으로 생성→그다음 측정.
+
 ## 3. 빌드 / 테스트
 - 빌드: `«빌드 명령»`  ·  테스트: `«테스트 명령»`  (정식은 `harness.config.json`의 `build.*`)
 - 커밋 전 로컬에서 한 번: `bash .harness/check.sh`
