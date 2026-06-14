@@ -19,7 +19,11 @@
    review.sh          변경 파일을 review-protocol.md + config.footguns로 LLM(codex/claude 자동감지)에 검토
 ④ 연속성 (긴/다세션 — 측정상 '주입이 값 나는' 유일 경계)
    session-context.sh SessionStart에 progress.md(작업 상태·핸드오프) 재주입 — 어댑터 SessionStart 훅이 호출
+⑤ Figma 시각 렌즈 (UI 프로젝트만 — 백엔드면 자동 비활성)
+   figma-check.sh     생성 컴포넌트 *렌더 결과*를 Figma 디자인과 측정-비교(UIMatch). 온디맨드/pre-push/CI(편집마다 X)
 ```
+
+> **렌즈는 *작업하는 파일에 따라 자동 선택*된다(모드 스위치 아님).** `.java` 백엔드 만지면 DDD 적대자·footgun이, `.tsx` 프론트 만지면 결정론 게이트가 돈다 — 서로 안 끼어든다. **Figma 렌즈는 UI 작업에만**(config `figma.components` 비면 no-op), 그것도 *무거워서* 컴포넌트 완성/pre-push/CI 때만(편집마다 아님).
 
 ## 왜 이 형태인가 (연구 근거)
 - **AGENTS.md** = [agents.md 표준](https://agents.md/)(Agentic AI Foundation/Linux Foundation). Codex·Cursor·Aider·Copilot·Windsurf·Gemini CLI·Zed 등 31개+ 툴이 읽음. "단일 진실원" 패턴.
@@ -41,6 +45,7 @@ bash install.sh /path/to/your-project
 | `check.sh` | 결정론 게이트 — staged/전체/지정 파일에서 stub·secret(BLOCK)·size(WARN). git훅·CI·에디터훅 공용 |
 | `review.sh` | 의미 적대자 — LLM CLI 자동감지(codex/claude)로 footgun·DDD 검토 |
 | `session-context.sh` | 연속성 — SessionStart에 `progress.md`(작업 상태) 재주입(긴/다세션) |
+| `figma-check.sh` | Figma 시각 렌즈(UI만) — 렌더 컴포넌트 vs Figma 디자인 측정-비교(UIMatch). config `figma.components` 채워야 동작 |
 | `harness.config.json` | **이식 contract** — 프로젝트 전용값 전부(이것만 교체) |
 | `review-protocol.md` | 적대자 프로토콜(판단 규칙) |
 | `AGENTS.md` | 범용 지침 템플릿 |

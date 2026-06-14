@@ -9,6 +9,14 @@
     "progressFile": "progress.md"
   },
 
+  "figma": {
+    "_about": "프론트/UI 시각 충실도 렌즈(figma-check.sh, UIMatch 엔진). 생성 컴포넌트의 *렌더 결과*를 Figma 디자인과 측정-비교. **UI 프로젝트만** — 백엔드면 components를 빈 배열로 두면 자동 비활성(no-op). 토큰은 env FIGMA_ACCESS_TOKEN. 무거워서 편집마다 아님(컴포넌트 완성/pre-push/CI/수동). 근거: docs/figma-to-code/RESEARCH.md",
+    "fileKey": "",
+    "threshold": 90,
+    "gate": "component/dev",
+    "components": []
+  },
+
   "source": {
     "root": "backend",
     "mainGlobs": ["anchoriq-*/src/main/java"],
