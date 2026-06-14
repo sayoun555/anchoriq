@@ -1,5 +1,5 @@
 {
-  "_about": "프론트엔드(React/Next.js/Tailwind) 생성 렌즈 — Figma→코드 *생성*을 잘하게 하는 footgun. 컴파일은 되나 *런타임에 깨지거나(하이드레이션) 느려지거나(번들·재렌더) 디자인시스템을 벗어나는(arbitrary value=context poisoning)* 것들. 프론트 프로젝트면 이 배열을 harness.config.json 의 review.footguns 로 쓴다(백엔드와 섞지 말고 프로젝트별 분리). 근거: docs/figma-to-code/RESEARCH.md. 결정론 보강은 eslint-plugin-tailwindcss(no-arbitrary-value) + Vercel agent-skills(npx skills add vercel-labs/agent-skills).",
+  "_about": "프론트엔드(React/Next.js/Tailwind) 생성 렌즈 — Figma→코드 *생성*을 잘하게 하는 footgun. 컴파일은 되나 *런타임에 깨지거나(하이드레이션) 느려지거나(번들·재렌더) 디자인시스템을 벗어나는(arbitrary value=context poisoning)* 것들. 프론트 프로젝트면 이 배열을 harness.config.json 의 review.footguns 로 쓴다(백엔드와 섞지 말고 프로젝트별 분리). 근거: docs/figma-to-code/RESEARCH.md. 결정론 보강은 eslint-plugin-tailwindcss(no-arbitrary-value) + eslint-plugin-jsx-a11y(접근성) + Vercel agent-skills(npx skills add vercel-labs/agent-skills).",
   "footguns": [
     { "id": "hydration-browser-api", "check": "render 중 window/document/localStorage 접근 → SSR↔클라 mismatch. useEffect(클라 전용)로 이동", "sev": "high" },
     { "id": "hydration-nondeterministic", "check": "render에서 new Date()/Date.now()/Math.random() → 서버·클라 값 달라 하이드레이션 깨짐. useEffect로 미루거나 useId 사용", "sev": "high" },
@@ -9,6 +9,10 @@
     { "id": "render-time-compute", "check": "render마다 JSON.parse/무거운 계산 반복 → 재렌더 낭비. useState(()=>...) lazy init 또는 useMemo", "sev": "med" },
     { "id": "async-waterfall", "check": "순차 await가 병렬 가능한데 워터폴(Vercel: 600ms 대기) → Promise.all/조건부로. 불필요 fetch는 필요할 때만", "sev": "med" },
     { "id": "duplicate-component", "check": "디자인시스템에 이미 있는 컴포넌트 대신 새로 만듦(병렬 구조 난립). 기존 컴포넌트 재사용(Code Connect 정신) — variant로 확장", "sev": "med" },
-    { "id": "invalid-html-nesting", "check": "<div> in <p> 같은 잘못된 중첩 → 브라우저가 DOM 재구성 → 하이드레이션 mismatch. 시맨틱 유효 구조", "sev": "low" }
+    { "id": "invalid-html-nesting", "check": "<div> in <p> 같은 잘못된 중첩 → 브라우저가 DOM 재구성 → 하이드레이션 mismatch. 시맨틱 유효 구조", "sev": "low" },
+    { "id": "a11y-nonsemantic-interactive", "check": "div/span + onClick(키보드·스크린리더 안 됨) → <button>/<a> 네이티브로(키보드·role 내장). 커스텀 모달 대신 <dialog>(포커스·ESC 내장). AI는 디자인에 a11y 정보 없으면 *기본으로 빠뜨림* — 의식적으로 넣어라", "sev": "high" },
+    { "id": "a11y-labels-alt", "check": "<img> alt 없음 / <input>에 연결된 <label for=id> 없음 / 아이콘버튼 aria-label 없음 → 스크린리더 못 읽음", "sev": "med" },
+    { "id": "a11y-focus-live", "check": "토글 요소(모달/사이드바)에 autofocus·포커스트랩·ESC 없음 / :focus-visible 스타일 없음 / 동적 콘텐츠(카운트다운·알림) aria-live 없음 / 애니메이션에 prefers-reduced-motion 폴백 없음", "sev": "med" },
+    { "id": "theming-hardcoded-color", "check": "하드코딩 색/값(다크모드·멀티브랜드 깨짐) 대신 *시맨틱 토큰*(color-bg-primary). Figma variable modes(light/dark/breakpoint) → CSS var/토큰으로 매핑", "sev": "med" }
   ]
 }
