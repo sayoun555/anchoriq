@@ -51,6 +51,45 @@
 - → **figma용 하네스 = 시각 grounding 렌즈**: 생성 컴포넌트를 *렌더(Playwright/Chrome DevTools MCP) → 스크린샷 → Figma 디자인(figma MCP 이미지)과 비교 → 어긋남 적발*. 이게 MCP가 못 주는 "검증" 절반.
 - 단 시각 검증은 노이즈 큼(허용오차·LLM 시각판정 확률적) — "명백한 어긋남"(요소 누락·색 완전 다름)엔 강하고 미세 간격엔 약함.
 
+## ★★ 진짜 해법 — *측정 기반 자기교정 루프* (네 실패 #1의 답)
+
+검증된 해법. 핵심 반전: **"스크린샷 시각 비교"가 아니라 *숫자 측정*이다.** ([vadim.blog 2026](https://vadim.blog/pixel-perfect-playwright-figma-mcp))
+
+루프(3단계, *기계적*):
+1. **디자인 스펙 읽기** — Figma MCP/REST로 폰트크기·간격·구조를 *픽셀값*으로
+2. **렌더 출력 측정** — headless **Playwright를 "측정 도구"로**: `getComputedStyle()`·`getBoundingClientRect()`로 실제 픽셀값 추출 (스크린샷 diff 아님!)
+3. **숫자 델타로 교정** — "heading 28px→24px, gap 4px→8px" 처럼 *구체 수치 목표*를 AI에 피드백
+
+> *"이 루프는 기계적이다. 교정에서 미적 판단을 제거한다 — 숫자가 뭐가 틀렸는지 말한다."* → **LLM 시각판정(확률적)보다 결정론적** = 우리 v-next 결론과 일치, 오히려 더 셈.
+
+**현실 체크**(같은 글): Figma MCP **rate limit 빡셈**(스타터 6콜/월) + stateless → **REST API가 신뢰 fallback** · Playwright MCP resize 후 컨텍스트 손실 · **토큰 매핑 갭**(`space-6`이 24px 아닐 수도) · LLM *반응형 공간추론* 약함 · **첫 패스엔 시각비교 금지**(스펙으로 먼저 생성→그다음 측정) · 쓸 곳=랜딩/마케팅/디자인시스템준수, 건너뛸 곳=내부 대시보드.
+
+## 전용 도구 (바로 쓰는 시각 QA)
+
+- **[UIMatch](https://github.com/kosaki08/uimatch)** — Playwright 기반. *Figma(fileKey:nodeId) vs 렌더 UI* 비교: 픽셀 + **ΔE2000 색차** + **Design Fidelity Score(0~100)** + CI 품질게이트. **Claude Code용 skills 내장** → 우리 하네스 렌즈로 바로 붙일 수 있음.
+  ```bash
+  npm i -g @uimatch/cli playwright && npx playwright install chromium
+  export FIGMA_ACCESS_TOKEN="figd_..."
+  npx @uimatch/cli compare figma=<fileKey>:<nodeId> story=http://localhost:6006/?path=/story/button selector="#root button"
+  ```
+- **[Applitools Eyes Figma 플러그인](https://applitools.com/solutions/figma/)** — Visual AI 디자인 vs 코드(상용).
+
+## 최강 대안 툴 (실측, 2026)
+
+| 툴 | 강점 | 약점 |
+|---|---|---|
+| **Builder.io Visual Copilot/Fusion** | **시맨틱 컴포넌트 매핑 — 네 기존 React 컴포넌트에**(코드베이스 통합), 최다 프레임워크. 디자인시스템 팀 최적 | 셋업 |
+| **Locofy** | 깔끔한 컴포넌트 구조·flexbox, 모바일·멀티프레임워크 | 복잡 반응형 약함, 고정 px |
+| **Anima** | (시각 OK) | *literal*(절대좌표·flat HTML="스크린샷을 HTML로"), 코드 나쁨 |
+| **Kombai** | 무료 300크레딧/월·Pro $20 | — |
+| **Figma Make** | Figma 자체(2026.2, **OpenAI 협업**), 챗 편집+MCP+실제 디자인시스템 | 신생 |
+
+> **Codex 쓰는 너**: Figma MCP가 **2026.2 OpenAI 협업으로 Codex 직접 연동**(픽셀 export 아닌 *라이브 컴포넌트 계층·토큰·Code Connect 매핑*). [Codex+Figma MCP 워크플로우](https://codex.danielvaughan.com/2026/03/27/codex-cli-figma-mcp-design-to-code/).
+
+## 최신 공식 (2026)
+- 도구: `get_design_context`(선택영역 구조화 React+Tailwind=시작점) · `get_variable_defs`(변수·토큰) · **Skills**(도구 사용 순서 가이드, [figma/mcp-server-guide](https://github.com/figma/mcp-server-guide))
+- **원격 MCP `mcp.figma.com/mcp` 권장**(데스크탑 localhost:3845보다). 산업: 제품팀 **65%+** AI 코드생성 사용.
+
 ## 출처
 
 - Figma 공식 — MCP 서버 가이드: https://help.figma.com/hc/en-us/articles/32132100833559-Guide-to-the-Figma-MCP-server
@@ -65,6 +104,13 @@
 - Locofy — Figma MCP 단점(엔터프라이즈): https://www.locofy.ai/resources/figma-mcp-disadvantages
 - Kombai — Figma MCP 가이드·한계: https://kombai.com/figma/figma-mcp-guide/
 - alexbobes — CTO 가이드(2026): https://alexbobes.com/tech/figma-mcp-the-cto-guide-to-design-to-code-in-2026/
+- ★ vadim.blog — Pixel-Perfect Playwright+Figma MCP(측정 루프, 무엇이 실제로 됨): https://vadim.blog/pixel-perfect-playwright-figma-mcp
+- ★ UIMatch — Figma vs 렌더 UI 시각 QA(ΔE2000·DFS·Claude skills): https://github.com/kosaki08/uimatch
+- Applitools — Figma 시각 테스트: https://applitools.com/solutions/figma/
+- Figma MCP + Claude Code + Playwright MCP 경험기: https://javascript.plainenglish.io/experience-story-figma-mcp-claude-code-playwright-68b20bb0f8ce
+- Codex CLI + Figma MCP 워크플로우: https://codex.danielvaughan.com/2026/03/27/codex-cli-figma-mcp-design-to-code/
+- 툴 비교(Builder/Locofy/Anima 실측): https://www.sixtythirtyten.co/blog/from-figma-to-code-ai-design-to-dev-workflows-in-2026
+- Figma 릴리즈 노트(최신 추적): https://www.figma.com/release-notes/
 
 ## 추가 자료 (네가 찾아온 것 — 계속 추가)
 
