@@ -107,6 +107,20 @@ Figma→코드는 ①생성(프론트 작업)+②검증(figma-check). 생성을 
 
 → **결정론 보강**: `eslint-plugin-tailwindcss`(no-arbitrary-value) + tsc + Vercel skills를 `build.compileCommand`/lint에. **의미**: 위 footgun을 적대자(review.sh)가. **검증**: figma-check.
 
+## ★ 놓쳤던 것 (2차 보강)
+
+**① 접근성(a11y) — AI 생성코드가 *기본으로 빠뜨리는* 큰 축** ([LogRocket](https://blog.logrocket.com/ai-has-an-accessibility-problem/)). *"별도 프롬프트 없으면 a11y는 AI 코드의 기본이 아니다"*(AI는 *인기 있는* 답을 내는데, 사람이 a11y를 기본으로 안 쓰니 AI도 안 씀). 구체:
+- div/span+onClick(키보드 안 됨) → `<button>`/`<a>` 네이티브 · 커스텀 모달 → `<dialog>`(포커스·ESC 내장)
+- `<img>` alt · `<input>`↔`<label for=id>` · 아이콘버튼 aria-label · 모달 `role=dialog`+`aria-modal`+`aria-labelledby`
+- 토글요소 autofocus·포커스트랩 · `:focus-visible` · 동적콘텐츠 `aria-live` · `prefers-reduced-motion`
+- **결정론 도구: `eslint-plugin-jsx-a11y`.** → 하네스 footgun에 추가됨(a11y-* 3개).
+
+**② Design2Code 벤치마크 (Stanford/NAACL 2025, 엄밀)** ([arxiv 2403.03163](https://arxiv.org/abs/2403.03163)) — *최초의 실세계 디자인→코드 벤치마크*, **484 웹페이지** + 자동지표 + 사람평가. GPT-4V/4o·Gemini·Claude 평가, **GPT-4V 최고**. 핵심: 모델이 *(a) 시각 요소 회수(요소 누락) + (b) 레이아웃 생성*에서 가장 약함. **방법론 교훈(우리와 직결): 도메인-작성 루브릭 > LLM-작성 루브릭(kappa 0.60 vs 0.46)** = 우리 하네스의 "결정론 측정·도메인 규칙" 철학을 학술이 뒷받침.
+
+**③ 반응형·테밍 (LLM 약점)** ([디자인시스템 컬렉티브 2025/26](https://www.designsystemscollective.com/design-system-mastery-with-figma-variables-the-2025-2026-best-practice-playbook-da0500ca0e66)) — Figma **variable modes**(light/dark/breakpoint) → 시맨틱 토큰 aliasing(`color-bg-primary` per 모드)·반응형 토큰(`breakpoint-md=768`). AI는 반응형 공간추론이 약하니 *명시*. → 하네스 footgun에 theming 추가됨.
+
+**④ 에이전틱 빌더 (최신, 2026)** — **v0(Vercel)**: 프론트 전용, *프로덕션 React+Tailwind*, Next/Vercel 생태계 — *너한테 가장 맞음*. **Lovable**: 풀스택 MVP(React+Supabase). **Bolt**: 빠른 프로토타입. **Stitch(Google)**: 디자인 목업. (Onlook=신생 비주얼 에디터, 문서 적음.) 선택: 목업→Stitch, 프로덕션 컴포넌트→v0, 앱→Lovable, 빠른 풀스택→Bolt.
+
 ## 출처
 
 - Figma 공식 — MCP 서버 가이드: https://help.figma.com/hc/en-us/articles/32132100833559-Guide-to-the-Figma-MCP-server
@@ -133,6 +147,11 @@ Figma→코드는 ①생성(프론트 작업)+②검증(figma-check). 생성을 
 - Next.js 하이드레이션 mismatch 원인·예방(2026): https://oneuptime.com/blog/post/2026-01-24-fix-hydration-mismatch-errors-nextjs/view
 - Evil Martians — Tailwind 카오스 방지 5원칙: https://evilmartians.com/chronicles/5-best-practices-for-preventing-chaos-in-tailwind-css
 - Next.js 프로덕션 최적화 체크리스트: https://nextjs.org/docs/app/guides/production-checklist
+- ★ Design2Code 벤치마크(Stanford/NAACL 2025): https://arxiv.org/abs/2403.03163 · https://aclanthology.org/2025.naacl-long.199/
+- ★ AI 코드 접근성 문제(a11y footgun): https://blog.logrocket.com/ai-has-an-accessibility-problem/
+- eslint-plugin-jsx-a11y(결정론 a11y): https://github.com/jsx-eslint/eslint-plugin-jsx-a11y
+- Figma variables/테밍 플레이북(2025/26): https://www.designsystemscollective.com/design-system-mastery-with-figma-variables-the-2025-2026-best-practice-playbook-da0500ca0e66
+- 에이전틱 빌더 비교(v0/Lovable/Bolt 2026): https://www.nxcode.io/resources/news/vibe-design-tools-compared-stitch-v0-lovable-2026
 
 ## 추가 자료 (네가 찾아온 것 — 계속 추가)
 
