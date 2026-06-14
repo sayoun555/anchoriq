@@ -121,6 +121,27 @@ Figma→코드는 ①생성(프론트 작업)+②검증(figma-check). 생성을 
 
 **④ 에이전틱 빌더 (최신, 2026)** — **v0(Vercel)**: 프론트 전용, *프로덕션 React+Tailwind*, Next/Vercel 생태계 — *너한테 가장 맞음*. **Lovable**: 풀스택 MVP(React+Supabase). **Bolt**: 빠른 프로토타입. **Stitch(Google)**: 디자인 목업. (Onlook=신생 비주얼 에디터, 문서 적음.) 선택: 목업→Stitch, 프로덕션 컴포넌트→v0, 앱→Lovable, 빠른 풀스택→Bolt.
 
+## ★ 4차 보강 (보안·데이터·Code Connect·토큰 파이프라인·현장교훈)
+
+**⑤ 보안·데이터·hooks footgun — "AI 코드 40% 보안결함", 빠졌던 축** ([9 patterns](https://theroadtoenterprise.com/blog/vibe-coding-vs-production-coding-react) · [보안감사](https://vitalii4reva.medium.com/40-of-ai-generated-code-has-security-flaws-your-code-review-wont-catch-them-0a02a13848fe)):
+- **데이터페칭 useEffect = AI 최다 안티패턴** — abort(언마운트 누수)·캐시·재시도·에러·dedup 없음 → **TanStack Query / Server Component**.
+- **XSS**: `dangerouslySetInnerHTML` 미살균 → DOMPurify/제거. **클라 API키 하드코딩** → 서버 프록시.
+- rules-of-hooks(조건부 hook·stale closure), 인라인 함수가 memo() 깸(useCallback), optimistic UI 롤백 없음, 중복 유틸. → footgun 4개 추가(server-state·security·rules-of-hooks·i18n).
+
+**⑥ Code Connect 셋업 HOW (정확도 최대 레버)** ([CLI](https://developers.figma.com/docs/code-connect)):
+```bash
+npm i -g @figma/code-connect@latest          # Node 18+ + Figma 토큰
+npx figma connect --token=$TOKEN             # 대화형: 컴포넌트 디렉토리·디자인파일 매핑
+npx figma connect publish --token=$TOKEN     # Dev Mode/MCP에 *진짜 프로덕션 스니펫* 노출
+```
+UI(시각·빠름·언어무관) vs **CLI(정밀·property 매핑·동적 예제)**. React/Web Components/SwiftUI/Compose. **Storybook 통합** 권장.
+
+**⑦ 디자인 토큰 파이프라인 (오염 방지 인프라)** ([DTCG 가이드](https://tasteprofile.io/blog/w3c-dtcg-design-tokens-practical-guide)):
+- **W3C DTCG 표준 2025.10 안정화** — 벤더 종속 줄이는 토큰 JSON 표준. 신규 시스템은 DTCG로.
+- 파이프라인: **Tokens Studio(Figma 플러그인)** → JSON → GitHub → **Style Dictionary(Amazon)** → CSS 변수/Tailwind config. → 임의값(context poisoning) 원천 차단.
+
+**⑧ 현장 교훈 (production 팀, 2026)** ([925studios](https://www.925studios.co/blog/top-figma-to-code-agencies-production-2026)): **"AI 핸드오프는 지름길이 아니라 *규율*에 보상한다."** 깨끗한 컴포넌트 시스템 팀 = **50~70% 절감**, ad-hoc Figma 파일(체계적 네이밍·구조 없음) = **이득 0**. 실제 제약 = rate limit·Code Connect 투자·Figma 위생. **Codex+Figma MCP가 2026 가장 실질적 다리.** Figma Make는 이제 로컬 코드에서도.
+
 ## 출처
 
 - Figma 공식 — MCP 서버 가이드: https://help.figma.com/hc/en-us/articles/32132100833559-Guide-to-the-Figma-MCP-server
@@ -152,6 +173,12 @@ Figma→코드는 ①생성(프론트 작업)+②검증(figma-check). 생성을 
 - eslint-plugin-jsx-a11y(결정론 a11y): https://github.com/jsx-eslint/eslint-plugin-jsx-a11y
 - Figma variables/테밍 플레이북(2025/26): https://www.designsystemscollective.com/design-system-mastery-with-figma-variables-the-2025-2026-best-practice-playbook-da0500ca0e66
 - 에이전틱 빌더 비교(v0/Lovable/Bolt 2026): https://www.nxcode.io/resources/news/vibe-design-tools-compared-stitch-v0-lovable-2026
+- ★ 9 patterns that fail in production(AI React footgun): https://theroadtoenterprise.com/blog/vibe-coding-vs-production-coding-react
+- AI 코드 보안결함 40%: https://vitalii4reva.medium.com/40-of-ai-generated-code-has-security-flaws-your-code-review-wont-catch-them-0a02a13848fe
+- Code Connect 개발자 문서(CLI): https://developers.figma.com/docs/code-connect
+- W3C DTCG 디자인 토큰 실전 가이드: https://tasteprofile.io/blog/w3c-dtcg-design-tokens-practical-guide
+- Figma→코드 production 에이전시 현장(규율>지름길): https://www.925studios.co/blog/top-figma-to-code-agencies-production-2026
+- Figma Make, 로컬 코드에서: https://www.figma.com/blog/figma-make-now-on-your-local-code/
 
 ## 추가 자료 (네가 찾아온 것 — 계속 추가)
 
